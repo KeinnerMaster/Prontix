@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Detalle del Producto - FlashBuy</title>
+  <meta name="description" content="Detalle completo del producto en FlashBuy">
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/detalle-producto.css" />
+  <link rel="icon" href="/flashbuy-logo.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#FF7A00">
+  <!-- Umami Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d" data-domains="pruebaflash.netlify.app"></script>
+<style>
+    .maintenance-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #0B1320 0%, #1a2942 100%);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .maintenance-page.active {
+      display: flex;
+    }
+
+    .maintenance-icon {
+      font-size: 120px;
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .maintenance-page h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #FF7A00;
+    }
+
+    .maintenance-page p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+
+    .maintenance-page .back-soon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+</style>
+</head>
+<body>
+
+<!-- PÁGINA DE MANTENIMIENTO -->
+  <div class="maintenance-page" id="maintenancePage">
+    <div class="maintenance-icon">🛠️</div>
+    <h1>Estamos en Mantenimiento</h1>
+    <p>Estamos mejorando nuestra tienda para ofrecerte una mejor experiencia.</p>
+    <p class="back-soon">Volveremos pronto. ¡Gracias por tu paciencia!</p>
+  </div>
+
+<div id="mainContent"></div>
+
+  <!-- Barra de anuncio animada -->
+  <div class="announcement-bar">
+    <div class="announcement-content" style="--text: 'VISITA NUESTRO SHOWROOM EN MEDELLÍN COLOMBIA CALLE 51A#78B-34 LOS COLORES • ENVÍOS A TODA COLOMBIA • PAGO CONTRA ENTREGA DISPONIBLE • GARANTÍA EN TODOS LOS PRODUCTOS •';">
+      <span class="txt"></span>
+      <span class="txt"></span>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <img src="flashbuy-logo-white.svg" alt="FlashBuy" class="logo" style="width: 200px; height: auto;" />
+    </div>
+
+    <nav class="desktop">
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Todos</a>
+      <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+
+    <button id="hamburger-btn" class="hamburger" aria-label="Abrir menú">☰</button>
+  </header>
+
+  <!-- mobile menu -->
+  <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <button id="mobile-menu-close" class="close-btn" aria-label="Cerrar menú">✕</button>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Todos los Productos</a>
+      <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+  </aside>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="index.html">Inicio</a> 
+    <span>/</span> 
+    <a href="productos.html" id="breadcrumb-categoria">Productos</a>
+    <span>/</span>
+    <span id="breadcrumb-producto">Cargando...</span>
+  </div>
+
+  <!-- Contenedor principal del producto -->
+  <main class="product-detail-container">
+    <!-- Galería de imágenes -->
+    <div class="product-gallery">
+      <div class="main-image-container">
+        <img id="main-image" src="" alt="Producto" />
+        <button class="zoom-btn" onclick="openZoom()">🔍 Ampliar</button>
+      </div>
+      <div class="thumbnail-gallery" id="thumbnail-gallery">
+        <!-- Las miniaturas se cargan dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Información del producto -->
+    <div class="product-info">
+      <div class="product-category" id="product-category"></div>
+      <h1 id="product-name">Cargando...</h1>
+      <div class="product-rating">
+        ⭐⭐⭐⭐⭐ <span>(127 reseñas)</span>
+      </div>
+      <div class="product-price" id="product-price">R$ 0.00</div>
+      <div class="product-stock" id="product-stock"></div>
+      
+      <div class="product-description" id="product-description">
+        Descripción del producto...
+      </div>
+
+      <!-- Selector de Color -->
+      <div class="option-group" id="color-selector-group" style="display:none;">
+        <label>Color:</label>
+        <div class="color-options" id="color-options">
+          <!-- Colores se cargan dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Selector de Talla -->
+      <div class="option-group" id="size-selector-group" style="display:none;">
+        <label>Talla:</label>
+        <div class="size-options" id="size-options">
+          <!-- Tallas se cargan dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Selector de Cantidad -->
+      <div class="quantity-selector">
+        <label>Cantidad:</label>
+        <div class="quantity-controls">
+          <button onclick="changeQuantity(-1)">-</button>
+          <input type="number" id="quantity-input" value="1" min="1" readonly />
+          <button onclick="changeQuantity(1)">+</button>
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="action-buttons">
+        <button class="btn-add-cart" onclick="addToCart()">
+          🛒 Agregar al carrito
+        </button>
+        <button class="btn-buy-now" onclick="buyNow()">
+          ⚡ Comprar ahora
+        </button>
+      </div>
+
+      <!-- Características del producto -->
+      <div class="product-features">
+        <h3>Características:</h3>
+        <ul id="product-features-list">
+          <li>✓ Envío gratis en compras mayores a R$ 200</li>
+          <li>✓ Garantía de satisfacción</li>
+          <li>✓ Pago contra entrega disponible</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal de Zoom -->
+  <div id="zoom-modal" class="zoom-modal" onclick="closeZoom()">
+    <span class="close-zoom">&times;</span>
+    <img class="zoom-content" id="zoom-image">
+    <div class="zoom-navigation">
+      <button onclick="event.stopPropagation(); prevImage()" class="zoom-nav-btn">❮</button>
+      <button onclick="event.stopPropagation(); nextImage()" class="zoom-nav-btn">❯</button>
+    </div>
+  </div>
+
+  <!-- Productos relacionados -->
+  <section class="related-products">
+    <h2>Productos Relacionados</h2>
+    <div class="galeria" id="related-products-list">
+      <!-- Se cargan dinámicamente -->
+    </div>
+  </section>
+
+  <a class="whatsapp-button" href="https://wa.me/573156599566?text=Hola%20quiero%20información%20sobre%20FlashBuy" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">💬</a>
+
+  <footer>
+    © 2025 FlashBuy – Entrega rápida • Pago seguro • Satisfacción garantizada
+  </footer>
+
+  </div>
+
+  <script src="js/productos.js"></script>
+  <script src="js/detalle-producto.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/tracking.js"></script>
+  
+  <!-- SCRIPT GLOBAL DE MANTENIMIENTO -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const mantenimientoActivo = localStorage.getItem('flashbuy_mantenimiento') === 'true';
+
+      if (mantenimientoActivo) {
+        document.getElementById('maintenancePage').classList.add('active');
+        document.getElementById('mainContent').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

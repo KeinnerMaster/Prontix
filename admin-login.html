@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Login - FlashBuy</title>
+  <link rel="stylesheet" href="css/style.css" />
+  
+  <!-- Umami Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d"></script>
+  
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0B1320 0%, #1a2332 50%, #2d3748 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 450px;
+      overflow: hidden;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #FF7A00 0%, #ff8c1a 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+
+    .logo-container {
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 120px;
+      height: auto;
+      filter: brightness(0) invert(1);
+    }
+
+    .login-header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .login-body {
+      padding: 40px 30px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 18px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 15px 14px 45px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #FF7A00;
+      box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.1);
+    }
+
+    .recaptcha-wrapper {
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: center;
+      transform: scale(0.95);
+      transform-origin: center;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #FF7A00 0%, #ff8c1a 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 122, 0, 0.4);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-message {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+      border-left: 4px solid #c62828;
+    }
+
+    .error-message.show {
+      display: block;
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .login-footer {
+      text-align: center;
+      padding: 20px;
+      background: #f8f9fa;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .back-link {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .back-link a {
+      color: #FF7A00;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn-login.loading .spinner {
+      display: block;
+    }
+
+    .btn-login.loading .btn-text {
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        border-radius: 0;
+      }
+
+      .login-header {
+        padding: 30px 20px;
+      }
+
+      .login-body {
+        padding: 30px 20px;
+      }
+
+      .recaptcha-wrapper {
+        transform: scale(0.85);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo-container">
+        <img src="flashbuy-logo-white.svg" alt="FlashBuy" class="logo">
+      </div>
+      <h1>🔐 Admin Panel</h1>
+      <p>Acceso restringido solo para administradores</p>
+    </div>
+
+    <div class="login-body">
+      <div class="error-message" id="error-message">
+        <!-- Error messages appear here -->
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              placeholder="Ingresa tu usuario"
+              required
+              autocomplete="username"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Ingresa tu contraseña"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+        </div>
+
+        <div class="recaptcha-wrapper">
+          <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+        </div>
+
+        <button type="submit" class="btn-login" id="btnLogin">
+          <span class="btn-text">Iniciar Sesión</span>
+          <div class="spinner"></div>
+        </button>
+      </form>
+
+      <div class="back-link">
+        <a href="index.html">← Volver a la tienda</a>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      🛡️ Panel protegido con autenticación y reCAPTCHA
+    </div>
+  </div>
+
+  <script>
+    // Credenciales correctas
+    const ADMIN_USER = 'DATA001';
+    const ADMIN_PASS = 'Nose**77';
+
+    // Verificar si ya está logueado
+    window.addEventListener('DOMContentLoaded', function() {
+      const session = localStorage.getItem('flashbuy_admin_session');
+      if (session) {
+        window.location.href = 'admin-data001.html';
+      }
+    });
+
+    // Manejar submit del formulario
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('error-message');
+      const btnLogin = document.getElementById('btnLogin');
+
+      // Limpiar mensaje de error
+      errorMsg.classList.remove('show');
+
+      // Verificar reCAPTCHA
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        mostrarError('Por favor, completa el reCAPTCHA');
+        return;
+      }
+
+      // Mostrar loading
+      btnLogin.classList.add('loading');
+      btnLogin.disabled = true;
+
+      // Simular verificación
+      setTimeout(() => {
+        // Obtener lista de administradores desde localStorage
+        const adminProfiles = JSON.parse(localStorage.getItem('flashbuy_admins')) || [
+          { id: 'DATA001', name: 'DATA001', role: 'owner', email: 'admin@flashbuy.com', pass: 'Nose**77' }
+        ];
+
+        // Buscar el usuario
+        const user = adminProfiles.find(a => a.id === username && a.pass === password);
+
+        if (user) {
+          // Login exitoso
+          const sessionData = {
+            id: user.id,
+            name: user.name,
+            role: user.role,
+            email: user.email,
+            loginTime: new Date().toISOString()
+          };
+          
+          localStorage.setItem('flashbuy_admin_session', JSON.stringify(sessionData));
+
+          // Redirigir al admin
+          window.location.href = 'admin-data001.html';
+        } else {
+          // Credenciales incorrectas
+          btnLogin.classList.remove('loading');
+          btnLogin.disabled = false;
+          grecaptcha.reset();
+          mostrarError('❌ Usuario o contraseña incorrectos');
+        }
+      }, 1000);
+    });
+
+    function mostrarError(mensaje) {
+      const errorMsg = document.getElementById('error-message');
+      errorMsg.textContent = mensaje;
+      errorMsg.classList.add('show');
+
+      // Ocultar después de 5 segundos
+      setTimeout(() => {
+        errorMsg.classList.remove('show');
+      }, 5000);
+    }
+
+    // Prevenir espacios en el usuario
+    document.getElementById('username').addEventListener('input', function(e) {
+      e.target.value = e.target.value.replace(/\s/g, '');
+    });
+  </script>
+</body>
+</html>

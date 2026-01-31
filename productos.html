@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Productos - FlashBuy</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="/flashbuy-logo.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#FF7A00">
+  <!-- Umami Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d" data-domains="pruebaflash.netlify.app"></script>
+<style>
+    .maintenance-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #0B1320 0%, #1a2942 100%);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .maintenance-page.active {
+      display: flex;
+    }
+
+    .maintenance-icon {
+      font-size: 120px;
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .maintenance-page h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #FF7A00;
+    }
+
+    .maintenance-page p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+
+    .maintenance-page .back-soon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+    </style>
+</head>
+<body>
+  <!-- PÁGINA DE MANTENIMIENTO -->
+  <div class="maintenance-page" id="maintenancePage">
+    <div class="maintenance-icon">🛠️</div>
+    <h1>Estamos en Mantenimiento</h1>
+    <p>Estamos mejorando nuestra tienda para ofrecerte una mejor experiencia.</p>
+    <p class="back-soon">Volveremos pronto. ¡Gracias por tu paciencia!</p>
+  </div>
+
+  <div id="mainContent"></div>
+
+  <header>
+    <div class="brand">
+      <img src="flashbuy-logo-white.svg" alt="FlashBuy" class="logo" style="width: 240px; height: auto;" />
+    </div>
+
+    <nav class="desktop">
+      <a href="index.html">Inicio</a>
+      <a href="productos.html" class="active">Todos</a>
+      <a href="productos.html?categoria=Tecnologia" class="cat-link" data-cat="Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa" class="cat-link" data-cat="Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios" class="cat-link" data-cat="Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios" class="cat-link" data-cat="Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+
+    <button id="hamburger-btn" class="hamburger" aria-label="Abrir menú">☰</button>
+  </header>
+
+  <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <button id="mobile-menu-close" class="close-btn" aria-label="Cerrar menú">✕</button>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Todos los Productos</a>
+      <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+  </aside>
+
+  <section class="productos" style="padding-top: 40px;">
+    <h3 id="categoria-title">Todos los productos</h3>
+    <div id="product-list" class="galeria">
+      <!-- Los productos se cargan dinámicamente -->
+    </div>
+  </section>
+
+  <a class="whatsapp-button" href="https://wa.me/573156599566?text=Hola%20quiero%20información%20sobre%20productos" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">💬</a>
+
+  <footer>
+    © 2025 FlashBuy – Entrega rápida • Pago seguro • Satisfacción garantizada
+  </footer>
+
+  </div>
+
+  <script src="js/productos.js"></script>
+  <script src="js/nav.js"></script>
+  <script>
+    // Cargar productos según categoría de URL
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const categoria = urlParams.get('categoria');
+      
+      if (categoria) {
+        document.getElementById('categoria-title').textContent = `Categoría: ${categoria}`;
+        renderProducts(categoria);
+        
+        // Marcar categoría activa
+        document.querySelectorAll('.cat-link').forEach(link => {
+          if (link.getAttribute('data-cat') === categoria) {
+            link.classList.add('active');
+          }
+        });
+      } else {
+        renderProducts();
+      }
+    });
+  </script>
+  <script src="js/tracking.js"></script>
+  <!-- SCRIPT GLOBAL DE MANTENIMIENTO -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const mantenimientoActivo = localStorage.getItem('flashbuy_mantenimiento') === 'true';
+
+      if (mantenimientoActivo) {
+        document.getElementById('maintenancePage').classList.add('active');
+        document.getElementById('mainContent').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

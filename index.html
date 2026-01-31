@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FlashBuy – Tienda Online</title>
+  <meta name="description" content="Ofertas rápidas, envíos seguros. Los mejores productos al mejor precio.">
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="/flashbuy-logo.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#FF7A00">
+  
+  <!-- Umami Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d"></script>
+  
+  <style>
+    /* Estilos para página de mantenimiento */
+    .maintenance-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #0B1320 0%, #1a2942 100%);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .maintenance-page.active {
+      display: flex;
+    }
+    
+    .maintenance-icon {
+      font-size: 120px;
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .maintenance-page h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #FF7A00;
+    }
+    
+    .maintenance-page p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+    
+    .maintenance-page .back-soon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- PÁGINA DE MANTENIMIENTO -->
+  <div class="maintenance-page" id="maintenancePage">
+    <div class="maintenance-icon">🛠️</div>
+    <h1>Estamos en Mantenimiento</h1>
+    <p>Estamos mejorando nuestra tienda para ofrecerte una mejor experiencia.</p>
+    <p class="back-soon">Volveremos pronto. ¡Gracias por tu paciencia!</p>
+  </div>
+  
+  <!-- CONTENIDO NORMAL DE LA WEB -->
+  <div id="mainContent">
+    <!-- Barra de anuncio animada -->
+    <div class="announcement-bar">
+      <div class="announcement-content" style="--text: 'VISITA NUESTRO SHOWROOM EN MEDELLÍN COLOMBIA CALLE 51A#78B-34 LOS COLORES • ENVÍOS A TODA COLOMBIA • PAGO CONTRA ENTREGA DISPONIBLE • GARANTÍA EN TODOS LOS PRODUCTOS •';">
+        <span class="txt"></span>
+        <span class="txt"></span>
+      </div>
+    </div>
+
+    <header>
+      <div class="brand">
+        <img src="flashbuy-logo-white.svg" alt="FlashBuy" class="logo" style="width: 200px; height: auto;" />
+      </div>
+
+      <nav class="desktop">
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Todos</a>
+        <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+        <a href="productos.html?categoria=Ropa">Ropa</a>
+        <a href="productos.html?categoria=Accesorios">Accesorios</a>
+        <a href="productos.html?categoria=Utensilios">Utensilios</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="carrito.html">🛒 Carrito</a>
+      </nav>
+
+      <button id="hamburger-btn" class="hamburger" aria-label="Abrir menú">☰</button>
+    </header>
+
+    <!-- mobile menu -->
+    <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+      <button id="mobile-menu-close" class="close-btn" aria-label="Cerrar menú">✕</button>
+      <nav>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Todos los Productos</a>
+        <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+        <a href="productos.html?categoria=Ropa">Ropa</a>
+        <a href="productos.html?categoria=Accesorios">Accesorios</a>
+        <a href="productos.html?categoria=Utensilios">Utensilios</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="carrito.html">🛒 Carrito</a>
+      </nav>
+    </aside>
+
+    <!-- Banner personalizable -->
+    <section class="custom-banner">
+      <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1400&h=400&fit=crop&q=80" alt="Banner FlashBuy - Ofertas Especiales" class="banner-image" />
+    </section>
+
+    <!-- Producto destacado -->
+    <section class="featured-product">
+      <div class="featured-inner">
+        <div class="featured-image">
+          <img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&q=80" alt="Audífonos In-Ear Pro - Producto Destacado" />
+          <span class="badge-destacado">⭐ DESTACADO</span>
+        </div>
+        <div class="featured-info">
+          <h2>🎧 Audífonos In-Ear Pro</h2>
+          <p class="featured-price">R$ 89,90</p>
+          <p class="featured-description">Sonido premium con cancelación de ruido. Batería de larga duración y diseño ergonómico. ¡El compañero perfecto para tu día!</p>
+          <ul class="featured-benefits">
+            <li>✓ Cancelación activa de ruido</li>
+            <li>✓ Batería de hasta 24 horas</li>
+            <li>✓ Resistente al agua IPX4</li>
+            <li>✓ Envío gratis en compras mayores a R$ 200</li>
+          </ul>
+          <div class="featured-actions">
+            <button onclick="agregar(2)" class="btn-add-cart">
+              🛒 Agregar al carrito
+            </button>
+            <a href="productos.html?categoria=Tecnologia" class="btn-ver-mas">Ver más tecnología</a>
+          </div>
+          <p class="featured-stock">📦 Stock disponible: 60 unidades</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="productos" class="productos">
+      <h3>Productos destacados</h3>
+      <div id="product-list" class="galeria">
+        <!-- Los productos se cargan dinámicamente con JavaScript -->
+      </div>
+    </section>
+
+    <a class="whatsapp-button" href="https://wa.me/573156599566?text=Hola%20quiero%20información%20sobre%20FlashBuy" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">💬</a>
+
+    <footer>
+      © 2025 FlashBuy – Entrega rápida • Pago seguro • Satisfacción garantizada
+    </footer>
+  </div>
+
+  <script src="js/productos.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/tracking.js"></script>
+  
+  <!-- Script de modo mantenimiento -->
+  <script>
+    // Verificar si el modo mantenimiento está activo
+    document.addEventListener('DOMContentLoaded', function() {
+      const mantenimientoActivo = localStorage.getItem('flashbuy_mantenimiento') === 'true';
+      
+      if (mantenimientoActivo) {
+        document.getElementById('maintenancePage').classList.add('active');
+        document.getElementById('mainContent').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

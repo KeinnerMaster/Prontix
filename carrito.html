@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carrito - FlashBuy</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="/flashbuy-logo.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#FF7A00">
+
+  <!-- Umami Analytics -->
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d"></script>
+
+  <!-- ESTILOS DE MANTENIMIENTO (IGUALES AL INDEX) -->
+  <style>
+    .maintenance-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, #0B1320 0%, #1a2942 100%);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .maintenance-page.active {
+      display: flex;
+    }
+
+    .maintenance-icon {
+      font-size: 120px;
+      margin-bottom: 30px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .maintenance-page h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #FF7A00;
+    }
+
+    .maintenance-page p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+
+    .maintenance-page .back-soon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+    <style>
+    .cart-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .cart-item {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      background: #fff;
+    }
+    .cart-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .cart-item-info {
+      flex: 1;
+    }
+    .cart-item-info h4 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+    .cart-item-info p {
+      margin: 4px 0;
+      color: #666;
+    }
+    .cart-item-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #FF7A00;
+    }
+    .cart-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .cart-actions button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-remove {
+      background: #ff4444;
+      color: white;
+    }
+    .btn-minus, .btn-plus {
+      background: #0B1320;
+      color: white;
+      width: 32px;
+      height: 32px;
+    }
+    .quantity-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .cart-total {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 8px;
+      margin-top: 24px;
+    }
+    .cart-total h3 {
+      margin: 0 0 16px 0;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    .total-row.final {
+      font-size: 24px;
+      font-weight: bold;
+      color: #FF7A00;
+      padding-top: 12px;
+      border-top: 2px solid #ddd;
+    }
+    .checkout-btn {
+      width: 100%;
+      padding: 16px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    .checkout-btn:hover {
+      background: #1fb855;
+    }
+    .empty-cart {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .empty-cart-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) {
+      .cart-item {
+        flex-direction: column;
+      }
+      .cart-item img {
+        width: 100%;
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- PÁGINA DE MANTENIMIENTO -->
+  <div class="maintenance-page" id="maintenancePage">
+    <div class="maintenance-icon">🛠️</div>
+    <h1>Estamos en Mantenimiento</h1>
+    <p>Estamos mejorando nuestra tienda para ofrecerte una mejor experiencia.</p>
+    <p class="back-soon">Volveremos pronto. ¡Gracias por tu paciencia!</p>
+  </div>
+
+  <!-- CONTENIDO NORMAL -->
+  <header>
+    <div class="brand">
+      <img src="flashbuy-logo.svg" alt="FlashBuy Logo" class="logo" />
+      <h1>FlashBuy</h1>
+    </div>
+    <nav class="desktop">
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Todos</a>
+      <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html" class="active">🛒 Carrito</a>
+    </nav>
+    <button id="hamburger-btn" class="hamburger" aria-label="Abrir menú">☰</button>
+  </header>
+
+  <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <button id="mobile-menu-close" class="close-btn" aria-label="Cerrar menú">✕</button>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Todos los Productos</a>
+      <a href="productos.html?categoria=Tecnologia">Tecnología</a>
+      <a href="productos.html?categoria=Ropa">Ropa</a>
+      <a href="productos.html?categoria=Accesorios">Accesorios</a>
+      <a href="productos.html?categoria=Utensilios">Utensilios</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+  </aside>
+
+  <main class="cart-container">
+    <h2>🛒 Tu Carrito de Compras</h2>
+    <div id="cart-contents"></div>
+  </main>
+
+  <footer>
+    © 2025 FlashBuy – Entrega rápida • Pago seguro • Satisfacción garantizada
+  </footer>
+
+  <script src="js/productos.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/carrito.js"></script>
+  <script src="js/tracking.js"></script>
+
+  <!-- SCRIPT GLOBAL DE MANTENIMIENTO -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const mantenimientoActivo = localStorage.getItem('flashbuy_mantenimiento') === 'true';
+
+      if (mantenimientoActivo) {
+        document.getElementById('maintenancePage').classList.add('active');
+        document.getElementById('mainContent').style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>

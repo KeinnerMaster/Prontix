@@ -1,0 +1,365 @@
+# 🛒 FlashBuy - Guía de Administración del Sistema de Productos
+
+## 📋 Resumen de Cambios
+
+Se ha implementado un sistema completo de **página de detalle del producto** con las siguientes características:
+
+### ✨ Nuevas Funcionalidades
+
+1. **Galería de Imágenes con Zoom**
+   - Imagen principal con zoom
+   - Miniaturas navegables
+   - Modal de zoom con navegación (flechas izquierda/derecha)
+   - Soporte para múltiples imágenes por producto
+
+2. **Opciones Personalizables**
+   - Selector de colores (con vista previa visual)
+   - Selector de tallas
+   - Selector de cantidad con límite de stock
+   
+3. **Información Mejorada**
+   - Descripción detallada del producto
+   - Estado de stock en tiempo real
+   - Categoría y breadcrumb de navegación
+   - Productos relacionados
+
+4. **Experiencia de Usuario**
+   - Click en producto → abre página de detalle
+   - Botón "Agregar al carrito" desde listado o desde detalle
+   - Botón "Comprar ahora" (agrega y redirige al carrito)
+   - Integración completa con sistema de carrito existente
+
+---
+
+## 📁 Archivos Nuevos Creados
+
+### 1. `detalle-producto.html`
+Página principal de detalle del producto con:
+- Galería de imágenes
+- Información completa del producto
+- Selectores de opciones
+- Modal de zoom
+
+### 2. `css/detalle-producto.css`
+Estilos específicos para la página de detalle:
+- Layout responsive
+- Galería de imágenes
+- Selectores de color y talla
+- Modal de zoom
+- Productos relacionados
+
+### 3. `js/detalle-producto.js`
+JavaScript que gestiona:
+- Carga de información del producto
+- Galería de imágenes con zoom
+- Selección de opciones (color, talla, cantidad)
+- Agregar al carrito con validaciones
+- Productos relacionados
+
+### 4. `js/productos.js` (ACTUALIZADO)
+- Estructura de datos mejorada con múltiples imágenes, colores y tallas
+- Click en productos redirige a página de detalle
+- Mantiene compatibilidad con sistema existente
+
+---
+
+## 🔧 Cómo Administrar los Productos
+
+### Estructura de un Producto Completo
+
+```javascript
+{
+  id: 1,                    // ID único del producto
+  nombre: "Nombre del Producto",
+  precio: 49.90,            // Precio en BRL
+  imagen: "url-principal",  // Imagen principal (se muestra en listado)
+  
+  // NUEVO: Múltiples imágenes para la galería
+  imagenes: [
+    "url-imagen-1",
+    "url-imagen-2",
+    "url-imagen-3"
+  ],
+  
+  categoria: "Tecnologia",  // Tecnologia, Ropa, Accesorios, Utensilios
+  stock: 120,               // Cantidad en stock
+  
+  // NUEVO: Descripción detallada
+  descripcion: "Descripción completa del producto...",
+  
+  // NUEVO: Colores disponibles (OPCIONAL)
+  colores: [
+    { nombre: "Negro", hex: "#000000" },
+    { nombre: "Blanco", hex: "#FFFFFF" },
+    { nombre: "Azul", hex: "#1E90FF" }
+  ],
+  
+  // NUEVO: Tallas disponibles (OPCIONAL - principalmente para ropa)
+  tallas: ["S", "M", "L", "XL", "XXL"]
+}
+```
+
+---
+
+## 📝 Ejemplos de Uso
+
+### Ejemplo 1: Producto de Tecnología con Colores
+
+```javascript
+{
+  id: 2,
+  nombre: "Audífonos Bluetooth Pro",
+  precio: 89.90,
+  imagen: "https://ejemplo.com/audifonos-main.jpg",
+  imagenes: [
+    "https://ejemplo.com/audifonos-1.jpg",
+    "https://ejemplo.com/audifonos-2.jpg",
+    "https://ejemplo.com/audifonos-3.jpg",
+    "https://ejemplo.com/audifonos-4.jpg"
+  ],
+  categoria: "Tecnologia",
+  stock: 60,
+  descripcion: "Audífonos premium con cancelación activa de ruido y batería de larga duración. Perfectos para música, llamadas y entretenimiento.",
+  colores: [
+    { nombre: "Negro", hex: "#000000" },
+    { nombre: "Blanco", hex: "#FFFFFF" },
+    { nombre: "Azul", hex: "#1E90FF" }
+  ]
+}
+```
+
+### Ejemplo 2: Ropa con Tallas y Colores
+
+```javascript
+{
+  id: 3,
+  nombre: "Camiseta Casual Premium",
+  precio: 39.90,
+  imagen: "https://ejemplo.com/camiseta-main.jpg",
+  imagenes: [
+    "https://ejemplo.com/camiseta-frente.jpg",
+    "https://ejemplo.com/camiseta-espalda.jpg",
+    "https://ejemplo.com/camiseta-detalle.jpg"
+  ],
+  categoria: "Ropa",
+  stock: 80,
+  descripcion: "Camiseta de algodón 100% de alta calidad. Corte moderno y cómodo para uso diario.",
+  tallas: ["S", "M", "L", "XL", "XXL"],
+  colores: [
+    { nombre: "Negro", hex: "#000000" },
+    { nombre: "Blanco", hex: "#FFFFFF" },
+    { nombre: "Gris", hex: "#808080" },
+    { nombre: "Azul Marino", hex: "#000080" }
+  ]
+}
+```
+
+### Ejemplo 3: Producto Simple (sin opciones)
+
+```javascript
+{
+  id: 5,
+  nombre: "Organizador de Cocina",
+  precio: 29.90,
+  imagen: "https://ejemplo.com/organizador.jpg",
+  imagenes: [
+    "https://ejemplo.com/organizador-1.jpg",
+    "https://ejemplo.com/organizador-2.jpg"
+  ],
+  categoria: "Utensilios",
+  stock: 100,
+  descripcion: "Set organizador versátil para cocina con tres compartimentos. Ideal para especias, utensilios y más."
+}
+```
+
+---
+
+## 🎨 Personalización de Colores
+
+### Colores Comunes para Usar
+
+```javascript
+// Básicos
+{ nombre: "Negro", hex: "#000000" }
+{ nombre: "Blanco", hex: "#FFFFFF" }
+{ nombre: "Gris", hex: "#808080" }
+
+// Azules
+{ nombre: "Azul", hex: "#0000FF" }
+{ nombre: "Azul Marino", hex: "#000080" }
+{ nombre: "Azul Cielo", hex: "#87CEEB" }
+
+// Rojos
+{ nombre: "Rojo", hex: "#FF0000" }
+{ nombre: "Rojo Oscuro", hex: "#8B0000" }
+
+// Verdes
+{ nombre: "Verde", hex: "#008000" }
+{ nombre: "Verde Militar", hex: "#4B5320" }
+
+// Otros
+{ nombre: "Rosa", hex: "#FF69B4" }
+{ nombre: "Morado", hex: "#800080" }
+{ nombre: "Naranja", hex: "#FF7A00" }
+{ nombre: "Amarillo", hex: "#FFD700" }
+```
+
+---
+
+## 🔄 Cómo Agregar un Nuevo Producto
+
+### Paso 1: Abre `js/productos.js`
+
+### Paso 2: Copia esta plantilla y modifícala
+
+```javascript
+{
+  id: 999,  // Usa un ID único que no exista
+  nombre: "Nombre de tu producto",
+  precio: 99.90,
+  imagen: "URL de la imagen principal",
+  imagenes: [  // 3-5 imágenes recomendadas
+    "URL imagen 1",
+    "URL imagen 2",
+    "URL imagen 3"
+  ],
+  categoria: "Tecnologia",  // o Ropa, Accesorios, Utensilios
+  stock: 50,
+  descripcion: "Descripción completa de tu producto con características y beneficios",
+  
+  // Si tiene colores:
+  colores: [
+    { nombre: "Color1", hex: "#CODIGO" },
+    { nombre: "Color2", hex: "#CODIGO" }
+  ],
+  
+  // Si tiene tallas (solo para ropa):
+  tallas: ["S", "M", "L", "XL"]
+}
+```
+
+### Paso 3: Agrégalo al array `productos`
+
+Pégalo dentro del array, después del último producto y antes del `];`
+
+### Paso 4: Guarda y sube los cambios
+
+```bash
+git add .
+git commit -m "Agregar nuevo producto"
+git push
+```
+
+---
+
+## 🖼️ Recomendaciones para Imágenes
+
+1. **Tamaño recomendado**: 800x800 píxeles mínimo
+2. **Formato**: JPG o PNG
+3. **Peso**: Máximo 500KB por imagen
+4. **Cantidad**: 3-5 imágenes por producto
+5. **Tipos de imágenes**:
+   - Imagen principal (vista frontal)
+   - Vista lateral/trasera
+   - Detalles o texturas
+   - Producto en uso
+   - Empaque (opcional)
+
+### Servicios para Obtener Imágenes
+
+- **Unsplash**: https://unsplash.com (gratuitas)
+- **Pexels**: https://pexels.com (gratuitas)
+- **Tus propias fotos** subidas a la carpeta `/assets/`
+
+---
+
+## 📊 Sistema de Stock
+
+El sistema controla automáticamente:
+- ✅ Stock disponible
+- ⚠️ Alertas de stock bajo (< 20 unidades)
+- ❌ Productos agotados (stock = 0)
+
+### Actualizar Stock
+
+Simplemente cambia el valor de `stock` en el producto:
+
+```javascript
+{ 
+  id: 1, 
+  nombre: "Producto", 
+  stock: 45  // Cambia este número
+}
+```
+
+---
+
+## 🚀 Flujo de Usuario
+
+1. Usuario ve producto en listado
+2. **Click en producto** → Abre página de detalle
+3. Ve galería de imágenes (puede hacer zoom)
+4. Selecciona opciones (color, talla si aplica)
+5. Elige cantidad
+6. Click en "Agregar al carrito" o "Comprar ahora"
+7. Producto se agrega con las opciones seleccionadas
+8. Continúa comprando o va al carrito
+
+---
+
+## ⚙️ Características Técnicas
+
+### Validaciones Implementadas
+- ✅ Verificación de stock disponible
+- ✅ Límite de cantidad por producto
+- ✅ Validación de opciones requeridas (color/talla)
+- ✅ Prevención de duplicados con mismas opciones
+
+### Responsive Design
+- ✅ Desktop (1200px+)
+- ✅ Tablet (768px - 1199px)
+- ✅ Mobile (< 768px)
+
+### Navegación con Teclado
+- `ESC`: Cerrar zoom
+- `←` / `→`: Navegar entre imágenes en zoom
+
+---
+
+## 🐛 Solución de Problemas
+
+### Problema: Las imágenes no cargan
+**Solución**: Verifica que las URLs sean válidas y accesibles
+
+### Problema: No aparecen los selectores de color/talla
+**Solución**: Asegúrate de que el producto tenga definidos `colores` o `tallas` en su objeto
+
+### Problema: El producto no aparece en la lista
+**Solución**: 
+1. Verifica que el ID sea único
+2. Revisa que esté dentro del array `productos`
+3. Chequea que la sintaxis JSON sea correcta (comas, llaves)
+
+---
+
+## 📞 Soporte
+
+Si necesitas ayuda para:
+- Agregar nuevos productos
+- Modificar el diseño
+- Agregar nuevas funcionalidades
+- Resolver errores
+
+¡No dudes en preguntar!
+
+---
+
+## 🎉 ¡Listo para Usar!
+
+Tu tienda FlashBuy ahora tiene un sistema profesional de detalle de productos. Los usuarios podrán:
+- Ver productos en alta calidad
+- Elegir opciones personalizadas
+- Agregar al carrito fácilmente
+- Disfrutar de una experiencia de compra completa
+
+**¡Feliz venta! 🚀**

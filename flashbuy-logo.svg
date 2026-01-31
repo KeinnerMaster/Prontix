@@ -1,0 +1,29 @@
+<!-- Archivo: flashbuy-logo.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-label="FlashBuy logo">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#FF7A00"/>
+      <stop offset="1" stop-color="#FFB24D"/>
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0B1320" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(60,40)" filter="url(#shadow)">
+    <path d="M140 0 L260 48 C292 68 320 110 320 162 C320 250 220 320 140 360 C60 320 -40 250 -40 162 C-40 110 -12 68 20 48 Z"
+          transform="translate(140,0) scale(0.35)"
+          fill="url(#g1)" stroke="none" />
+    <path d="M150 50 L110 150 L170 150 L130 260 L210 120 L160 120 Z"
+          transform="translate(110,10) scale(0.35)"
+          fill="#FFFFFF" opacity="0.95"/>
+    <path d="M70 220 C90 200 210 200 230 220" transform="translate(110,10) scale(0.35)" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  </g>
+
+  <g transform="translate(380,180)">
+    <text x="0" y="0" font-family="Poppins, Montserrat, Arial, sans-serif" font-weight="700" font-size="96" fill="#0B1320">Flash</text>
+    <text x="310" y="0" font-family="Poppins, Montserrat, Arial, sans-serif" font-weight="700" font-size="96" fill="#0B1320">Buy</text>
+  </g>
+
+  <text x="380" y="250" font-family="Inter, Arial, sans-serif" font-size="20" fill="#556073">Entrega rápida • Pago seguro • Satisfacción garantizada</text>
+</svg>

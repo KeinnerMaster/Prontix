@@ -1,0 +1,26 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Escudo naranja con gradiente -->
+  <defs>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFA938;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Shield background -->
+  <path d="M60 10 L100 10 C105 10 110 15 110 20 L110 60 C110 80 85 95 60 100 C35 95 10 80 10 60 L10 20 C10 15 15 10 20 10 Z" fill="url(#shieldGradient)" stroke="#FF7A00" stroke-width="2"/>
+  
+  <!-- Rayo blanco -->
+  <path d="M70 25 L50 55 L62 55 L52 85 L75 50 L63 50 L70 25 Z" fill="white" stroke="white" stroke-width="1"/>
+  
+  <!-- Base del enchufe -->
+  <rect x="50" y="82" width="20" height="8" rx="2" fill="white"/>
+  <rect x="56" y="86" width="3" height="4" fill="url(#shieldGradient)"/>
+  <rect x="61" y="86" width="3" height="4" fill="url(#shieldGradient)"/>
+  
+  <!-- Texto FlashBuy en BLANCO -->
+  <text x="130" y="75" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF" letter-spacing="-1">FlashBuy</text>
+  
+  <!-- Tagline pequeño -->
+  <text x="132" y="95" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="400" fill="#CCCCCC">Entrega rápida • Pago seguro • Satisfacción garantizada</text>
+</svg>

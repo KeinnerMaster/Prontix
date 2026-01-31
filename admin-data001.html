@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <script>
+    // VERIFICACIÓN DE SESIÓN MEJORADA
+    (function() {
+      const session = localStorage.getItem('flashbuy_admin_session');
+      const isLoginPage = window.location.pathname.endsWith('admin-login.html');
+      
+      if (!session && !isLoginPage) {
+        // Solo redirigir si no hay sesión Y no estamos ya en el login
+        window.location.href = 'admin-login.html';
+      }
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard - FlashBuy</title>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="f974dcbb-29aa-4518-89ec-ab9e4abce31d"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* SIDEBAR */
+    .sidebar { width: 280px; background: linear-gradient(180deg, #0B1320 0%, #1a2942 100%); color: white; position: fixed; left: 0; top: 0; height: 100vh; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; transition: transform 0.3s; }
+    .sidebar-header { padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo { width: 180px; height: auto; }
+    .sidebar-menu { flex: 1; overflow-y: auto; padding: 20px 0; }
+    .menu-item { display: flex; align-items: center; gap: 15px; padding: 15px 25px; color: rgba(255,255,255,0.8); text-decoration: none; cursor: pointer; border-left: 4px solid transparent; font-size: 15px; font-weight: 500; transition: all 0.3s; }
+    .menu-item:hover { background: rgba(255,255,255,0.05); color: white; border-left-color: #FF7A00; }
+    .menu-item.active { background: rgba(255,122,0,0.15); color: #FF7A00; border-left-color: #FF7A00; }
+    .menu-item-icon { font-size: 20px; width: 24px; text-align: center; }
+    .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .user-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: all 0.3s; position: relative; }
+    .user-info:hover { background: rgba(255,255,255,0.1); }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #FF7A00; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
+    .user-name { font-weight: 600; font-size: 14px; }
+    .user-role { font-size: 12px; color: rgba(255,255,255,0.6); }
+    .user-badge { display: inline-block; padding: 2px 8px; background: #FFD700; color: #000; border-radius: 4px; font-size: 10px; font-weight: bold; margin-top: 3px; }
+    
+    /* USER MENU DROPDOWN */
+    .user-menu-dropdown { position: absolute; bottom: 70px; left: 20px; right: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); display: none; z-index: 200; overflow: hidden; }
+    .user-menu-dropdown.active { display: block; animation: slideUp 0.3s; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .user-menu-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; color: #333; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+    .user-menu-item:hover { background: #f8f9fa; }
+    .user-menu-item:last-child { border-bottom: none; }
+    
+    /* MAIN */
+    .main-content { margin-left: 280px; flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .top-bar { background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .top-bar-left h1 { font-size: 24px; color: #0B1320; margin: 0; }
+    .top-bar-left p { color: #666; font-size: 14px; margin: 5px 0 0 0; }
+    .btn-visit-store { padding: 10px 20px; background: #FF7A00; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s; }
+    .btn-visit-store:hover { background: #e66d00; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,122,0,0.3); }
+    .content-area { flex: 1; overflow-y: auto; padding: 30px; }
+    
+    /* SECTIONS */
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s; border-left: 4px solid #FF7A00; position: relative; overflow: hidden; }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    .stat-card.blue { border-left-color: #2196F3; }
+    .stat-card.green { border-left-color: #4CAF50; }
+    .stat-card.purple { border-left-color: #9C27B0; }
+    .stat-card h3 { margin: 0; color: #666; font-size: 13px; text-transform: uppercase; font-weight: 600; }
+    .stat-number { font-size: 32px; font-weight: bold; color: #0B1320; margin: 10px 0; }
+    .stat-change { font-size: 13px; color: #4CAF50; }
+    
+    /* CHARTS */
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-bottom: 30px; }
+    .chart-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .chart-card h3 { margin: 0 0 20px 0; color: #0B1320; font-size: 18px; font-weight: 600; }
+    
+    /* IMAGE UPLOAD - MEJORADO */
+    .image-upload-section { margin-bottom: 30px; }
+    .image-upload-area { border: 3px dashed #e0e0e0; border-radius: 12px; padding: 30px; text-align: center; background: #f8f9fa; transition: all 0.3s; cursor: pointer; margin-bottom: 20px; }
+    .image-upload-area:hover, .image-upload-area.dragover { border-color: #FF7A00; background: #fff3e6; }
+    .image-upload-area input[type="file"] { display: none; }
+    .upload-icon { font-size: 48px; color: #FF7A00; margin-bottom: 15px; }
+    .upload-text { color: #666; font-size: 14px; }
+    
+    .images-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-top: 20px; }
+    .main-image-section { background: white; border: 3px solid #FF7A00; border-radius: 12px; padding: 15px; position: relative; }
+    .main-image-section h4 { margin: 0 0 15px 0; color: #FF7A00; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .main-image-preview { width: 100%; aspect-ratio: 1; border-radius: 8px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #999; font-size: 14px; position: relative; overflow: hidden; border: 2px dashed #e0e0e0; }
+    .main-image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .main-image-preview.empty::before { content: 'Imagen Principal'; }
+    
+    .other-images-section { background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; }
+    .other-images-section h4 { margin: 0 0 15px 0; color: #0B1320; font-size: 14px; font-weight: 600; }
+    .images-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .image-preview-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #e0e0e0; cursor: grab; transition: all 0.3s; aspect-ratio: 1; }
+    .image-preview-item:active { cursor: grabbing; }
+    .image-preview-item:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .image-preview-item.dragging { opacity: 0.5; transform: scale(0.95); }
+    .image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .image-preview-item .remove-btn { position: absolute; top: 5px; right: 5px; background: rgba(220,53,69,0.9); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .image-preview-item .make-main-btn { position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(255,122,0,0.95); color: white; border: none; border-radius: 4px; padding: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+    
+    /* VARIANTS - MEJORADO */
+    .variants-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    .variants-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 15px; background: white; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+    .variants-toggle:hover { background: #fff3e6; }
+    .variants-toggle input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+    .variants-toggle label { cursor: pointer; font-weight: 600; color: #0B1320; flex: 1; }
+    .variants-content { display: none; }
+    .variants-content.active { display: block; animation: fadeIn 0.3s; }
+    .variant-group { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; }
+    .variant-group label { display: block; font-weight: 600; margin-bottom: 10px; color: #0B1320; }
+    .variant-input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+    .variant-input-group input { flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; }
+    .variant-input-group button { padding: 10px 20px; background: #FF7A00; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .variant-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .variant-tag { background: white; border: 2px solid #FF7A00; padding: 8px 15px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #FF7A00; font-weight: 600; }
+    .variant-tag .remove { cursor: pointer; color: #dc3545; font-weight: bold; }
+    
+    /* TABLES */
+    .table-container { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 30px; overflow-x: auto; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+    .table-header h3 { margin: 0; font-size: 20px; color: #0B1320; font-weight: 600; }
+    .table-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-box { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; width: 250px; transition: border-color 0.3s; }
+    .search-box:focus { outline: none; border-color: #FF7A00; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    .data-table thead { background: #f8f9fa; }
+    .data-table th { padding: 15px; text-align: left; font-weight: 600; color: #0B1320; border-bottom: 2px solid #e0e0e0; font-size: 13px; text-transform: uppercase; }
+    .data-table td { padding: 15px; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 14px; }
+    .data-table tbody tr:hover { background: #f8f9fa; }
+    .product-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+    
+    /* BADGES */
+    .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .badge.hot { background: #ffebee; color: #c62828; }
+    .badge.trending { background: #e8f5e9; color: #2e7d32; }
+    
+    /* SWITCH STYLES */
+    .switch input:checked + .slider { background-color: #FF7A00; }
+    .switch input:focus + .slider { box-shadow: 0 0 1px #FF7A00; }
+    .switch input:checked + .slider:before { transform: translateX(26px); }
+    .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    .badge.low-stock { background: #fff3e0; color: #ef6c00; }
+    
+    /* BUTTONS */
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: #FF7A00; color: white; }
+    .btn-primary:hover { background: #e66d00; transform: translateY(-2px); }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-edit { background: #0B1320; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn-delete { background: #dc3545; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    
+    /* FILTERS */
+    .filter-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-btn { padding: 10px 20px; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; }
+    .filter-btn:hover { border-color: #FF7A00; color: #FF7A00; }
+    .filter-btn.active { background: #FF7A00; color: white; border-color: #FF7A00; }
+    
+    /* FORMS */
+    .form-section { background: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .form-section h2 { margin: 0 0 25px 0; color: #0B1320; font-size: 22px; font-weight: 600; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #0B1320; font-size: 14px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: border-color 0.3s; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #FF7A00; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+    
+    /* ORDER STATUS - MEJORADO CON MENÚ */
+    .order-status { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; cursor: pointer; transition: all 0.2s; position: relative; }
+    .order-status:hover { transform: scale(1.05); }
+    .order-status.pending { background: #fff3e0; color: #ef6c00; }
+    .order-status.processing { background: #e3f2fd; color: #1565c0; }
+    .order-status.shipped { background: #e8f5e9; color: #2e7d32; }
+    .order-status.delivered { background: #c8e6c9; color: #1b5e20; }
+    .order-status.cancelled { background: #ffebee; color: #c62828; }
+    
+    /* STATUS MENU - MEJORADO */
+    .status-menu { position: relative; display: inline-block; }
+    .status-dropdown { position: absolute; top: 100%; left: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: none; z-index: 100; margin-top: 5px; min-width: 220px; overflow: hidden; }
+    .status-dropdown.active { display: block; animation: fadeIn 0.2s; }
+    .status-option { padding: 12px 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; border-left: 4px solid transparent; }
+    .status-option:hover { background: #f8f9fa; }
+    .status-option.pending { border-left-color: #ef6c00; }
+    .status-option.pending:hover { background: #fff3e0; }
+    .status-option.processing { border-left-color: #1565c0; }
+    .status-option.processing:hover { background: #e3f2fd; }
+    .status-option.shipped { border-left-color: #2e7d32; }
+    .status-option.shipped:hover { background: #e8f5e9; }
+    .status-option.delivered { border-left-color: #1b5e20; }
+    .status-option.delivered:hover { background: #c8e6c9; }
+    .status-option.cancelled { border-left-color: #c62828; }
+    .status-option.cancelled:hover { background: #ffebee; }
+    
+    /* CUSTOMER */
+    .customer-segment { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    .customer-segment.vip { background: #ffd700; color: #8b6914; }
+    .customer-segment.regular { background: #e3f2fd; color: #1565c0; }
+    .customer-segment.new { background: #e8f5e9; color: #2e7d32; }
+
+     /* COUPON */
+    .coupon-card { background: white; padding: 20px; border-radius: 12px; border-left: 4px solid #FF7A00; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .coupon-code { font-size: 24px; font-weight: bold; color: #FF7A00; font-family: 'Courier New', monospace; }
+
+    /* SHIPPING */
+    .shipping-zone { background: white; padding: 20px; border-radius: 12px; border: 2px solid #e0e0e0; margin-bottom: 15px; }
+    .shipping-zone h4 { margin: 0 0 15px 0; color: #0B1320; }
+    .shipping-rate { display: flex; justify-content: space-between; padding: 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 8px; }
+    
+    /* MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+    .modal { background: white; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal h2 { margin: 0 0 20px 0; color: #0B1320; }
+    .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+    
+    /* ADMIN MANAGEMENT - MEJORADO */
+    .admin-card { background: white; padding: 20px; border-radius: 12px; border: 2px solid #e0e0e0; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; }
+    .admin-card:hover { border-color: #FF7A00; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .admin-info { display: flex; align-items: center; gap: 15px; flex: 1; }
+    .admin-avatar { width: 50px; height: 50px; border-radius: 50%; background: #FF7A00; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; }
+    .admin-details { flex: 1; }
+    .admin-role-badge { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .admin-role-badge:hover { transform: scale(1.05); }
+    .admin-role-badge.owner { background: #FFD700; color: #8b6914; }
+    .admin-role-badge.moderator { background: #2196F3; color: white; }
+    .admin-role-badge.publisher { background: #4CAF50; color: white; }
+    .admin-actions { display: flex; gap: 10px; }
+
+    /* SETTINGS */
+    .settings-section { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .settings-section h3 { margin: 0 0 20px 0; color: #0B1320; font-size: 18px; font-weight: 600; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-label h4 { margin: 0 0 5px 0; font-size: 15px; color: #0B1320; }
+    .setting-label p { margin: 0; font-size: 13px; color: #666; }
+    .toggle-switch { position: relative; width: 50px; height: 26px; }
+    .toggle-switch input { display: none; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.3s; border-radius: 26px; }
+    .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+    .toggle-switch input:checked + .toggle-slider { background-color: #FF7A00; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+    
+    /* PROFILE SELECTOR */
+    .profile-selector { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    .profile-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+    .profile-option { padding: 20px; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: center; }
+    .profile-option:hover { border-color: #FF7A00; background: #fff3e6; transform: translateY(-3px); }
+    .profile-option.active { border-color: #FF7A00; background: #fff3e6; }
+    .profile-option-avatar { width: 60px; height: 60px; border-radius: 50%; background: #FF7A00; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: white; margin: 0 auto 10px; }
+    .profile-option-name { font-weight: 600; color: #0B1320; margin-bottom: 5px; }
+    .profile-option-role { font-size: 12px; color: #666; }
+    
+    /* MOBILE */
+    .mobile-menu-btn { display: none; position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #FF7A00; color: white; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 4px 20px rgba(255,122,0,0.4); z-index: 99; }
+    
+    @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .images-container { grid-template-columns: 1fr; }
+    }
+    
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .content-area { padding: 20px 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <img src="https://pruebaflash.netlify.app/flashbuy-logo-white.svg" alt="FlashBuy" class="sidebar-logo" />
+    </div>
+    <nav class="sidebar-menu">
+      <a class="menu-item active" data-section="dashboard">
+        <span class="menu-item-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a class="menu-item" data-section="productos">
+        <span class="menu-item-icon">📦</span><span>Productos</span>
+      </a>
+      <a class="menu-item" data-section="agregar-producto">
+        <span class="menu-item-icon">➕</span><span>Agregar Producto</span>
+      </a>
+      <a class="menu-item" data-section="pedidos">
+        <span class="menu-item-icon">🛒</span><span>Pedidos</span>
+      </a>
+      <a class="menu-item" data-section="clientes">
+        <span class="menu-item-icon">👥</span><span>Clientes</span>
+      </a>
+      <a class="menu-item" data-section="marketing">
+        <span class="menu-item-icon">🎯</span><span>Marketing</span>
+        </a>
+      <a class="menu-item" data-section="envios">
+        <span class="menu-item-icon">🚚</span><span>Envíos</span>
+      </a>
+      <a class="menu-item" data-section="administradores" style="display:none;">
+        <span class="menu-item-icon">👔</span><span>Administradores</span>
+      </a>
+      <a class="menu-item" data-section="configuracion">
+        <span class="menu-item-icon">⚙️</span><span>Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info" id="userInfoBtn">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div>
+          <div class="user-name" id="userName">Admin FlashBuy</div>
+          <div class="user-role" id="userRole">Administrador</div>
+          <div class="user-badge" id="userBadge">OWNER</div>
+        </div>
+      </div>
+      <div class="user-menu-dropdown" id="userMenuDropdown">
+        <div class="user-menu-item" onclick="mostrarCambioPerfil()">
+          👤 Cambiar Perfil
+        </div>
+        <div class="user-menu-item" onclick="cerrarSesion()">
+          🚪 Cerrar Sesión
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1 id="pageTitle">📊 Dashboard</h1>
+        <p id="pageSubtitle">Resumen general de tu tienda</p>
+      </div>
+      <div>
+        <a href="https://pruebaflash.netlify.app" target="_blank" class="btn-visit-store">🌐 Ver Tienda</a>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Productos</h3>
+            <div class="stat-number" id="stat-total-productos">0</div>
+            <div class="stat-change">En catálogo</div>
+          </div>
+          <div class="stat-card green">
+            <h3>En Stock</h3>
+            <div class="stat-number" id="stat-en-stock">0</div>
+            <div class="stat-change">Disponibles</div>
+          </div>
+          <div class="stat-card blue">
+            <h3>Stock Bajo</h3>
+            <div class="stat-number" id="stat-stock-bajo">0</div>
+            <div class="stat-change">Menos de 20 unidades</div>
+          </div>
+          <div class="stat-card purple">
+            <h3>Valor Inventario</h3>
+            <div class="stat-number" id="stat-valor-inventario">R$ 0</div>
+            <div class="stat-change">Total en productos</div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>📊 Productos por Categoría</h3>
+            <canvas id="chartCategorias"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>📦 Estado del Stock</h3>
+            <canvas id="chartStock"></canvas>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <div class="table-header">
+            <h3>🔥 Productos con Stock Crítico</h3>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio</th>
+              </tr>
+            </thead>
+            <tbody id="critical-stock-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PRODUCTOS -->
+      <section id="productos" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>📦 Gestión de Productos</h3>
+            <div class="table-actions">
+              <input type="text" class="search-box" id="search-productos" placeholder="🔍 Buscar productos..." oninput="buscarProductos()">
+              <button class="btn btn-primary" onclick="goToAddProduct()">➕ Agregar Producto</button>
+            </div>
+          </div>
+          
+          <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filtrarProductos('todos')">📋 Todos</button>
+            <button class="filter-btn" onclick="filtrarProductos('Tecnologia')">💻 Tecnología</button>
+            <button class="filter-btn" onclick="filtrarProductos('Ropa')">👕 Ropa</button>
+            <button class="filter-btn" onclick="filtrarProductos('Accesorios')">👜 Accesorios</button>
+            <button class="filter-btn" onclick="filtrarProductos('Utensilios')">🍴 Utensilios</button>
+            <button class="filter-btn" onclick="filtrarProductos('stock-bajo')">⚠️ Stock Bajo</button>
+            <button class="filter-btn" onclick="filtrarProductos('sin-stock')">❌ Sin Stock</button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productos-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">Cargando productos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AGREGAR/EDITAR PRODUCTO -->
+      <section id="agregar-producto" class="section">
+        <div class="form-section">
+          <h2 id="form-title">➕ Agregar Nuevo Producto</h2>
+          <form id="productoForm" onsubmit="guardarProducto(event)">
+            <input type="hidden" id="editing_id" value="">
+            
+            <!-- UPLOAD IMAGES - MEJORADO -->
+            <div class="form-group full-width image-upload-section">
+              <label>📸 Imágenes del Producto</label>
+              <div class="image-upload-area" id="imageUploadArea">
+                <input type="file" id="imageInput" accept="image/*" multiple>
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">
+                  <strong>Arrastra imágenes aquí</strong> o haz clic para seleccionar
+                </div>
+              </div>
+              
+              <div class="images-container" id="imagesContainer" style="display:none;">
+                <div class="main-image-section">
+                  <h4>⭐ Imagen Principal</h4>
+                  <div class="main-image-preview" id="mainImagePreview"></div>
+                </div>
+                <div class="other-images-section">
+                  <h4>🖼️ Otras Imágenes (Arrastra aquí para hacer principal)</h4>
+                  <div class="images-preview" id="otherImagesPreview"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nombre del Producto *</label>
+                <input type="text" id="nombre" required placeholder="Ej: iPhone 15 Pro Max">
+              </div>
+              
+              <div class="form-group">
+                <label>Precio (R$) *</label>
+                <input type="number" id="precio" step="0.01" required placeholder="0.00">
+              </div>
+              
+              <div class="form-group">
+                <label>Categoría *</label>
+                <select id="categoria" required>
+                  <option value="">Seleccionar categoría</option>
+                  <option value="Tecnologia">💻 Tecnología</option>
+                  <option value="Ropa">👕 Ropa</option>
+                  <option value="Accesorios">👜 Accesorios</option>
+                  <option value="Utensilios">🍴 Utensilios</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Stock *</label>
+                <input type="number" id="stock" required placeholder="0">
+              </div>
+              
+              <div class="form-group full-width">
+                <label>Descripción</label>
+                <textarea id="descripcion" placeholder="Describe las características del producto..."></textarea>
+              </div>
+            </div>
+
+            <!-- VARIANTS - MEJORADO CON TOGGLE -->
+            <div class="variants-section">
+              <div class="variants-toggle" onclick="toggleVariants()">
+                <input type="checkbox" id="enableVariants">
+                <label for="enableVariants">🎨 Habilitar Variantes (Color/Talla - Opcional para ropa)</label>
+              </div>
+              
+              <div class="variants-content" id="variantsContent">
+                <div class="variant-group">
+                  <label>🎨 Colores</label>
+                  <div class="variant-input-group">
+                    <input type="text" id="colorInput" placeholder="Ej: Rojo, Azul, Negro">
+                    <button type="button" onclick="agregarColor()">Agregar</button>
+                  </div>
+                  <div class="variant-tags" id="coloresTags"></div>
+                </div>
+
+                <div class="variant-group">
+                  <label>📏 Tallas</label>
+                  <div class="variant-input-group">
+                    <input type="text" id="tallaInput" placeholder="Ej: S, M, L, XL">
+                    <button type="button" onclick="agregarTalla()">Agregar</button>
+                  </div>
+                  <div class="variant-tags" id="tallasTags"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
+              <button type="button" class="btn btn-secondary" onclick="cancelarEdicion()">❌ Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- PEDIDOS -->
+      <section id="pedidos" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>🛒 Gestión de Pedidos</h3>
+            <div class="table-actions">
+              <input type="text" class="search-box" placeholder="🔍 Buscar pedido...">
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID Pedido</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="pedidos-tbody">
+              <tr>
+                <td>#ORD-001</td>
+                <td>Juan Pérez</td>
+                <td>R$ 1,299.00</td>
+                <td>23/01/2026</td>
+                <td>
+                  <div class="status-menu">
+                    <div class="order-status pending" onclick="toggleStatusMenu(this)">Pendiente</div>
+                    <div class="status-dropdown">
+                      <div class="status-option pending" onclick="cambiarEstadoPedido(this, 'pending', 'Pendiente')">
+                        ⏳ Pendiente
+                      </div>
+                      <div class="status-option processing" onclick="cambiarEstadoPedido(this, 'processing', 'En Proceso')">
+                        🔄 En Proceso
+                      </div>
+                      <div class="status-option shipped" onclick="cambiarEstadoPedido(this, 'shipped', 'Enviado')">
+                        🚚 Enviado
+                      </div>
+                      <div class="status-option delivered" onclick="cambiarEstadoPedido(this, 'delivered', 'Entregado')">
+                        ✅ Entregado
+                      </div>
+                      <div class="status-option cancelled" onclick="cambiarEstadoPedido(this, 'cancelled', 'Cancelado')">
+                        ❌ Cancelado
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <button class="btn-edit">👁️ Ver</button>
+                </td>
+              </tr>
+              <tr>
+                <td>#ORD-002</td>
+                <td>María García</td>
+                <td>R$ 599.00</td>
+                <td>22/01/2026</td>
+                <td>
+                  <div class="status-menu">
+                    <div class="order-status processing" onclick="toggleStatusMenu(this)">En Proceso</div>
+                    <div class="status-dropdown">
+                      <div class="status-option pending" onclick="cambiarEstadoPedido(this, 'pending', 'Pendiente')">
+                        ⏳ Pendiente
+                      </div>
+                      <div class="status-option processing" onclick="cambiarEstadoPedido(this, 'processing', 'En Proceso')">
+                        🔄 En Proceso
+                      </div>
+                      <div class="status-option shipped" onclick="cambiarEstadoPedido(this, 'shipped', 'Enviado')">
+                        🚚 Enviado
+                      </div>
+                      <div class="status-option delivered" onclick="cambiarEstadoPedido(this, 'delivered', 'Entregado')">
+                        ✅ Entregado
+                      </div>
+                      <div class="status-option cancelled" onclick="cambiarEstadoPedido(this, 'cancelled', 'Cancelado')">
+                        ❌ Cancelado
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <button class="btn-edit">👁️ Ver</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CLIENTES -->
+      <section id="clientes" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>👥 Gestión de Clientes</h3>
+            <div class="table-actions">
+              <input type="text" class="search-box" placeholder="🔍 Buscar cliente...">
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Pedidos</th>
+                <th>Total Gastado</th>
+                <th>Segmento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Juan Pérez</td>
+                <td>juan@email.com</td>
+                <td>12</td>
+                <td>R$ 5,499.00</td>
+                <td><span class="customer-segment vip">VIP</span></td>
+              </tr>
+              <tr>
+                <td>María García</td>
+                <td>maria@email.com</td>
+                <td>5</td>
+                <td>R$ 1,299.00</td>
+                <td><span class="customer-segment regular">Regular</span></td>
+              </tr>
+              <tr>
+                <td>Carlos Silva</td>
+                <td>carlos@email.com</td>
+                <td>1</td>
+                <td>R$ 299.00</td>
+                <td><span class="customer-segment new">Nuevo</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MARKETING -->
+      <section id="marketing" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>🎯 Cupones de Descuento</h3>
+            <button class="btn btn-primary" onclick="mostrarFormCupon()">➕ Crear Cupón</button>
+          </div>
+
+          <div id="form-cupon" style="display:none;margin-bottom:20px;">
+            <form id="cuponForm" onsubmit="guardarCupon(event)" style="background:#f8f9fa;padding:20px;border-radius:8px;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Código del Cupón *</label>
+                  <input type="text" id="cupon_codigo" required placeholder="FLASH10" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                  <label>Descuento (%) *</label>
+                  <input type="number" id="cupon_descuento" required placeholder="10" min="1" max="100">
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Expiración *</label>
+                  <input type="date" id="cupon_expiracion" required>
+                </div>
+                <div class="form-group">
+                  <label>Usos Máximos</label>
+                  <input type="number" id="cupon_usos" placeholder="100" min="1">
+                </div>
+              </div>
+              <div style="margin-top:20px;">
+                <button type="submit" class="btn btn-primary">💾 Guardar Cupón</button>
+                <button type="button" class="btn btn-secondary" onclick="ocultarFormCupon()">❌ Cancelar</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="cupones-list"></div>
+        </div>
+      </section>
+
+      <!-- ENVIOS -->
+      <section id="envios" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>🚚 Configuración de Envíos</h3>
+            <button class="btn btn-primary" onclick="agregarZonaEnvio()">➕ Agregar Zona</button>
+          </div>
+          <div id="zonas-envio-list"></div>
+        </div>
+      </section>
+
+      <!-- ADMINISTRADORES -->
+      <section id="administradores" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>👔 Gestión de Administradores</h3>
+            <div class="table-actions">
+              <button class="btn btn-primary" onclick="mostrarAgregarAdmin()" id="btnAgregarAdmin" style="display:none;">➕ Agregar Administrador</button>
+            </div>
+          </div>
+
+          <div id="adminsList">
+            <div class="admin-card">
+              <div class="admin-info">
+                <div class="admin-avatar">D</div>
+                <div class="admin-details">
+                  <div style="font-weight:600;color:#0B1320;">DATA001</div>
+                  <div style="font-size:12px;color:#666;">admin@flashbuy.com</div>
+                  <div style="margin-top:8px;">
+                    <span class="admin-role-badge owner">👑 Owner</span>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-actions">
+                <span style="color:#999;font-size:12px;">No se puede modificar</span>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-info">
+                <div class="admin-avatar" style="background:#2196F3;">M</div>
+                <div class="admin-details">
+                  <div style="font-weight:600;color:#0B1320;">MOD001</div>
+                  <div style="font-size:12px;color:#666;">moderador@flashbuy.com</div>
+                  <div style="margin-top:8px;">
+                    <div class="status-menu">
+                      <span class="admin-role-badge moderator" onclick="toggleRoleMenu(this)">🛡️ Moderador</span>
+                      <div class="status-dropdown">
+                        <div class="status-option" onclick="cambiarRolAdmin(this, 'moderator', '🛡️ Moderador')">
+                          🛡️ Moderador
+                        </div>
+                        <div class="status-option" onclick="cambiarRolAdmin(this, 'publisher', '📝 Publicador')">
+                          📝 Publicador
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-actions" id="ownerActions">
+                <button class="btn-delete" onclick="eliminarAdmin(this)">🗑️ Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIGURACIÓN -->
+      <section id="configuracion" class="section">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>⚙️ Configuración del Sistema</h3>
+          </div>
+          
+          <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div class="settings-card" style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0;">
+              <h4>🛠️ Modo Mantenimiento</h4>
+              <p style="font-size: 14px; color: #666; margin: 10px 0 20px 0;">Activa esta opción para mostrar una página de mantenimiento a los clientes.</p>
+              <label class="switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                <input type="checkbox" id="toggle-mantenimiento" onchange="toggleMantenimiento()" style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+              </label>
+            </div>
+
+            <div class="settings-card" style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0;">
+              <h4>🔔 Notificaciones por Email</h4>
+              <p style="font-size: 14px; color: #666; margin: 10px 0 20px 0;">Recibir alertas por correo electrónico cuando se realice un nuevo pedido.</p>
+              <label class="switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                <input type="checkbox" id="toggle-notificaciones" onchange="toggleNotificaciones()" style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+              </label>
+            </div>
+
+            <div class="settings-card" style="background: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0;">
+              <h4>💾 Gestión de Datos</h4>
+              <p style="font-size: 14px; color: #666; margin: 10px 0 20px 0;">Exporta tus datos o limpia la base de datos local.</p>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="exportarDatos()">📥 Exportar JSON</button>
+                <button class="btn btn-delete" onclick="limpiarDatos()" style="background: #dc3545; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;">🗑️ Limpiar Todo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal Cambio de Perfil -->
+  <div class="modal-overlay" id="modalCambioPerfil">
+    <div class="modal">
+      <button class="modal-close" onclick="cerrarModalPerfil()">×</button>
+      <h2>👤 Cambiar Perfil de Administrador</h2>
+      <div class="profile-selector">
+        <p style="color:#666;margin-bottom:15px;">Selecciona el perfil con el que deseas trabajar:</p>
+        <div class="profile-options" id="profileOptions">
+          <!-- Se llenarán dinámicamente -->
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="confirmarCambioPerfil()">✓ Cambiar Perfil</button>
+        <button class="btn btn-secondary" onclick="cerrarModalPerfil()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Agregar Admin -->
+  <div class="modal-overlay" id="modalAgregarAdmin">
+    <div class="modal">
+      <button class="modal-close" onclick="cerrarModalAgregarAdmin()">×</button>
+      <h2>➕ Agregar Nuevo Administrador</h2>
+      <form onsubmit="agregarNuevoAdmin(event)">
+        <div class="form-group">
+          <label>ID de Usuario *</label>
+          <input type="text" id="newAdminId" required placeholder="Ej: MOD002">
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="newAdminEmail" required placeholder="admin@ejemplo.com">
+        </div>
+        <div class="form-group">
+          <label>Rol *</label>
+          <select id="newAdminRole" required>
+            <option value="moderator">🛡️ Moderador</option>
+            <option value="publisher">📝 Publicador</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input type="password" id="newAdminPass" required placeholder="Mínimo 6 caracteres">
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px;">
+          <button type="submit" class="btn btn-primary">✓ Agregar</button>
+          <button type="button" class="btn btn-secondary" onclick="cerrarModalAgregarAdmin()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+
+  <script>
+    // ============ DATOS SIMULADOS ============
+    let productos = [
+      { id: 1, nombre: "iPhone 15 Pro", precio: 1299.99, stock: 15, categoria: "Tecnologia", imagen: "https://via.placeholder.com/300", colores: [], tallas: [] },
+      { id: 2, nombre: "Camiseta Nike", precio: 89.90, stock: 45, categoria: "Ropa", imagen: "https://via.placeholder.com/300", colores: ["Rojo", "Azul"], tallas: ["M", "L", "XL"] },
+      { id: 3, nombre: "MacBook Air M2", precio: 1899.00, stock: 8, categoria: "Tecnologia", imagen: "https://via.placeholder.com/300", colores: [], tallas: [] },
+      { id: 4, nombre: "Mochila Deportiva", precio: 129.90, stock: 32, categoria: "Accesorios", imagen: "https://via.placeholder.com/300", colores: ["Negro", "Gris"], tallas: [] },
+      { id: 5, nombre: "Set de Cuchillos", precio: 199.90, stock: 5, categoria: "Utensilios", imagen: "https://via.placeholder.com/300", colores: [], tallas: [] }
+    ];
+
+    let currentEditingId = null;
+    let productImages = [];
+    let mainImageIndex = 0;
+    let currentProfile = { id: 'DATA001', name: 'DATA001', role: 'owner', email: 'admin@flashbuy.com' };
+    let adminProfiles = JSON.parse(localStorage.getItem('flashbuy_admins')) || [
+      { id: 'DATA001', name: 'DATA001', role: 'owner', email: 'admin@flashbuy.com', pass: 'Nose**77' },
+      { id: 'MOD001', name: 'MOD001', role: 'moderator', email: 'moderador@flashbuy.com', pass: '123456' }
+    ];
+
+    let cupones = JSON.parse(localStorage.getItem('flashbuy_cupones')) || [];
+    let zonasEnvio = JSON.parse(localStorage.getItem('flashbuy_zonas_envio')) || [
+      { id: 1, nombre: 'Envío Estándar', tarifa: 15.00, descripcion: 'Entrega en 3-5 días hábiles' },
+      { id: 2, nombre: 'Envío Express', tarifa: 35.00, descripcion: 'Entrega en 24-48 horas' }
+    ];
+
+    // ============ INICIALIZACIÓN ============
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar perfil desde la sesión si existe
+      const session = localStorage.getItem('flashbuy_admin_session');
+      if (session) {
+        try {
+          const sessionData = JSON.parse(session);
+          if (sessionData && sessionData.id) {
+            currentProfile = sessionData;
+          }
+        } catch (e) {
+          console.error("Error cargando sesión:", e);
+        }
+      }
+
+      cargarProductos();
+      actualizarStats();
+      crearGraficos();
+      inicializarDragDrop();
+      actualizarPerfilActual();
+      verificarPermisosAdmin();
+      renderAdmins(); // Inicializar lista de admins
+      cargarConfiguracion(); // Inicializar configuración
+    });
+
+    // ============ NAVEGACIÓN ============
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const section = this.getAttribute('data-section');
+        document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const targetSection = document.getElementById(section);
+        if (targetSection) {
+          targetSection.classList.add('active');
+          document.getElementById('pageTitle').textContent = this.querySelector('span:last-child').textContent;
+          document.getElementById('pageSubtitle').textContent = `Gestión de ${this.querySelector('span:last-child').textContent.toLowerCase()}`;
+          
+          // Inicializar datos específicos de la sección
+          if (section === 'marketing') renderizarCupones();
+          if (section === 'envios') renderizarZonasEnvio();
+          if (section === 'configuracion') cargarConfiguracion();
+        }
+        
+        const titles = {
+          'dashboard': ['📊 Dashboard', 'Resumen general de tu tienda'],
+          'productos': ['📦 Productos', 'Gestión de productos'],
+          'agregar-producto': ['➕ Agregar Producto', 'Crear nuevo producto'],
+          'pedidos': ['🛒 Pedidos', 'Gestión de pedidos'],
+          'clientes': ['👥 Clientes', 'Gestión de clientes'],
+          'administradores': ['👔 Administradores', 'Gestión de administradores'],
+          'configuracion': ['⚙️ Configuración', 'Ajustes de la tienda']
+        };
+        
+        if (titles[section]) {
+          document.getElementById('pageTitle').textContent = titles[section][0];
+          document.getElementById('pageSubtitle').textContent = titles[section][1];
+        }
+        
+        if (window.innerWidth <= 1024) {
+          document.getElementById('sidebar').classList.remove('open');
+        }
+      });
+    });
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // ============ GESTIÓN DE IMÁGENES - MEJORADO ============
+    function inicializarDragDrop() {
+      const uploadArea = document.getElementById('imageUploadArea');
+      const fileInput = document.getElementById('imageInput');
+
+      uploadArea.addEventListener('click', () => fileInput.click());
+      
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+      
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+      
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+      });
+      
+      fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+      });
+    }
+
+    function handleFiles(files) {
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            productImages.push(e.target.result);
+            renderImages();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function renderImages() {
+      const container = document.getElementById('imagesContainer');
+      const mainPreview = document.getElementById('mainImagePreview');
+      const otherPreview = document.getElementById('otherImagesPreview');
+      
+      if (productImages.length > 0) {
+        container.style.display = 'grid';
+        
+        // Imagen principal
+        mainPreview.innerHTML = `
+          <img src="${productImages[mainImageIndex]}" alt="Principal">
+          <button class="remove-btn" onclick="eliminarImagen(${mainImageIndex}); event.stopPropagation();">×</button>
+        `;
+        mainPreview.classList.remove('empty');
+        
+        // Otras imágenes
+        otherPreview.innerHTML = '';
+        productImages.forEach((img, index) => {
+          if (index !== mainImageIndex) {
+            const div = document.createElement('div');
+            div.className = 'image-preview-item';
+            div.draggable = true;
+            div.innerHTML = `
+              <img src="${img}" alt="Imagen ${index + 1}">
+              <button class="remove-btn" onclick="eliminarImagen(${index}); event.stopPropagation();">×</button>
+              <button class="make-main-btn" onclick="hacerPrincipal(${index})">★ Principal</button>
+            `;
+            
+            // Drag & Drop para hacer principal
+            div.addEventListener('dragstart', (e) => {
+              div.classList.add('dragging');
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('imageIndex', index);
+            });
+            
+            div.addEventListener('dragend', () => {
+              div.classList.remove('dragging');
+            });
+            
+            otherPreview.appendChild(div);
+          }
+        });
+        
+        // Permitir drop en imagen principal
+        mainPreview.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        });
+        
+        mainPreview.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const draggedIndex = parseInt(e.dataTransfer.getData('imageIndex'));
+          hacerPrincipal(draggedIndex);
+        });
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    function hacerPrincipal(index) {
+      mainImageIndex = index;
+      renderImages();
+    }
+
+    function eliminarImagen(index) {
+      productImages.splice(index, 1);
+      if (mainImageIndex >= productImages.length) {
+        mainImageIndex = Math.max(0, productImages.length - 1);
+      }
+      renderImages();
+    }
+
+    // ============ VARIANTES - MEJORADO ============
+    let colores = [];
+    let tallas = [];
+
+    function toggleVariants() {
+      const checkbox = document.getElementById('enableVariants');
+      const content = document.getElementById('variantsContent');
+      content.classList.toggle('active', checkbox.checked);
+    }
+
+    function agregarColor() {
+      const input = document.getElementById('colorInput');
+      const valor = input.value.trim();
+      if (valor && !colores.includes(valor)) {
+        colores.push(valor);
+        renderColores();
+        input.value = '';
+      }
+    }
+
+    function agregarTalla() {
+      const input = document.getElementById('tallaInput');
+      const valor = input.value.trim();
+      if (valor && !tallas.includes(valor)) {
+        tallas.push(valor);
+        renderTallas();
+        input.value = '';
+      }
+    }
+
+    function renderColores() {
+      const container = document.getElementById('coloresTags');
+      container.innerHTML = colores.map((color, i) => `
+        <div class="variant-tag">
+          ${color}
+          <span class="remove" onclick="eliminarColor(${i})">×</span>
+        </div>
+      `).join('');
+    }
+
+    function renderTallas() {
+      const container = document.getElementById('tallasTags');
+      container.innerHTML = tallas.map((talla, i) => `
+        <div class="variant-tag">
+          ${talla}
+          <span class="remove" onclick="eliminarTalla(${i})">×</span>
+        </div>
+      `).join('');
+    }
+
+    function eliminarColor(index) {
+      colores.splice(index, 1);
+      renderColores();
+    }
+
+    function eliminarTalla(index) {
+      tallas.splice(index, 1);
+      renderTallas();
+    }
+
+    // ============ PRODUCTOS ============
+    function cargarProductos() {
+      const tbody = document.getElementById('productos-tbody');
+      tbody.innerHTML = productos.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="${p.imagen}" class="product-img" alt="${p.nombre}">
+              <div>
+                <div style="font-weight:600;color:#0B1320;">${p.nombre}</div>
+                ${p.colores.length > 0 ? `<div style="font-size:11px;color:#666;">Colores: ${p.colores.join(', ')}</div>` : ''}
+                ${p.tallas.length > 0 ? `<div style="font-size:11px;color:#666;">Tallas: ${p.tallas.join(', ')}</div>` : ''}
+              </div>
+            </div>
+          </td>
+          <td>R$ ${p.precio.toFixed(2)}</td>
+          <td>${p.stock}</td>
+          <td>${p.categoria}</td>
+          <td>
+            ${p.stock === 0 ? '<span class="badge hot">Sin Stock</span>' : 
+              p.stock < 20 ? '<span class="badge low-stock">Stock Bajo</span>' : 
+              '<span class="badge trending">Disponible</span>'}
+          </td>
+          <td>
+            <button class="btn-edit" onclick="editarProducto(${p.id})">✏️</button>
+            <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+      
+      actualizarCriticalStock();
+    }
+
+    function actualizarCriticalStock() {
+      const tbody = document.getElementById('critical-stock-tbody');
+      const critical = productos.filter(p => p.stock < 20);
+      
+      if (critical.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#999;">No hay productos con stock crítico</td></tr>';
+      } else {
+        tbody.innerHTML = critical.map(p => `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <img src="${p.imagen}" class="product-img" alt="${p.nombre}">
+                <span style="font-weight:600;">${p.nombre}</span>
+              </div>
+            </td>
+            <td>${p.categoria}</td>
+            <td><span class="badge low-stock">${p.stock} unidades</span></td>
+            <td>R$ ${p.precio.toFixed(2)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function buscarProductos() {
+      const search = document.getElementById('search-productos').value.toLowerCase();
+      const filtered = productos.filter(p => 
+        p.nombre.toLowerCase().includes(search) || 
+        p.categoria.toLowerCase().includes(search)
+      );
+      renderProductosFiltrados(filtered);
+    }
+
+    function filtrarProductos(tipo) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      let filtered = productos;
+      if (tipo === 'stock-bajo') {
+        filtered = productos.filter(p => p.stock < 20 && p.stock > 0);
+      } else if (tipo === 'sin-stock') {
+        filtered = productos.filter(p => p.stock === 0);
+      } else if (tipo !== 'todos') {
+        filtered = productos.filter(p => p.categoria === tipo);
+      }
+      
+      renderProductosFiltrados(filtered);
+    }
+
+    function renderProductosFiltrados(filtered) {
+      const tbody = document.getElementById('productos-tbody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron productos</td></tr>';
+      } else {
+        tbody.innerHTML = filtered.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <img src="${p.imagen}" class="product-img" alt="${p.nombre}">
+                <div>
+                  <div style="font-weight:600;color:#0B1320;">${p.nombre}</div>
+                  ${p.colores.length > 0 ? `<div style="font-size:11px;color:#666;">Colores: ${p.colores.join(', ')}</div>` : ''}
+                  ${p.tallas.length > 0 ? `<div style="font-size:11px;color:#666;">Tallas: ${p.tallas.join(', ')}</div>` : ''}
+                </div>
+              </div>
+            </td>
+            <td>R$ ${p.precio.toFixed(2)}</td>
+            <td>${p.stock}</td>
+            <td>${p.categoria}</td>
+            <td>
+              ${p.stock === 0 ? '<span class="badge hot">Sin Stock</span>' : 
+                p.stock < 20 ? '<span class="badge low-stock">Stock Bajo</span>' : 
+                '<span class="badge trending">Disponible</span>'}
+            </td>
+            <td>
+              <button class="btn-edit" onclick="editarProducto(${p.id})">✏️</button>
+              <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function goToAddProduct() {
+      document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+      document.querySelector('[data-section="agregar-producto"]').classList.add('active');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('agregar-producto').classList.add('active');
+      document.getElementById('pageTitle').textContent = '➕ Agregar Producto';
+      document.getElementById('pageSubtitle').textContent = 'Crear nuevo producto';
+      cancelarEdicion();
+    }
+
+    function guardarProducto(e) {
+      e.preventDefault();
+      
+      const producto = {
+        nombre: document.getElementById('nombre').value,
+        precio: parseFloat(document.getElementById('precio').value),
+        categoria: document.getElementById('categoria').value,
+        stock: parseInt(document.getElementById('stock').value),
+        descripcion: document.getElementById('descripcion').value,
+        imagen: productImages.length > 0 ? productImages[mainImageIndex] : 'https://via.placeholder.com/300',
+        colores: [...colores],
+        tallas: [...tallas]
+      };
+      
+      if (currentEditingId) {
+        const index = productos.findIndex(p => p.id === currentEditingId);
+        productos[index] = { ...producto, id: currentEditingId };
+        alert('✅ Producto actualizado correctamente');
+      } else {
+        producto.id = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+        productos.push(producto);
+        alert('✅ Producto agregado correctamente');
+      }
+      
+      cargarProductos();
+      actualizarStats();
+      crearGraficos();
+      cancelarEdicion();
+      
+      document.querySelector('[data-section="productos"]').click();
+    }
+
+    function editarProducto(id) {
+      currentEditingId = id;
+      const producto = productos.find(p => p.id === id);
+      
+      document.getElementById('nombre').value = producto.nombre;
+      document.getElementById('precio').value = producto.precio;
+      document.getElementById('categoria').value = producto.categoria;
+      document.getElementById('stock').value = producto.stock;
+      document.getElementById('descripcion').value = producto.descripcion || '';
+      document.getElementById('editing_id').value = id;
+      
+      productImages = [producto.imagen];
+      mainImageIndex = 0;
+      colores = [...(producto.colores || [])];
+      tallas = [...(producto.tallas || [])];
+      
+      document.getElementById('enableVariants').checked = colores.length > 0 || tallas.length > 0;
+      toggleVariants();
+      
+      renderImages();
+      renderColores();
+      renderTallas();
+      
+      document.getElementById('form-title').textContent = '✏️ Editar Producto';
+      
+      document.querySelectorAll('.menu-item').forEach(mi => mi.classList.remove('active'));
+      document.querySelector('[data-section="agregar-producto"]').classList.add('active');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('agregar-producto').classList.add('active');
+      document.getElementById('pageTitle').textContent = '✏️ Editar Producto';
+      document.getElementById('pageSubtitle').textContent = 'Modificar producto existente';
+    }
+
+    function eliminarProducto(id) {
+      if (confirm('¿Estás seguro de eliminar este producto?')) {
+        productos = productos.filter(p => p.id !== id);
+        cargarProductos();
+        actualizarStats();
+        crearGraficos();
+        alert('✅ Producto eliminado correctamente');
+      }
+    }
+
+    function cancelarEdicion() {
+      currentEditingId = null;
+      document.getElementById('productoForm').reset();
+      document.getElementById('editing_id').value = '';
+      document.getElementById('form-title').textContent = '➕ Agregar Nuevo Producto';
+      productImages = [];
+      mainImageIndex = 0;
+      colores = [];
+      tallas = [];
+      renderImages();
+      renderColores();
+      renderTallas();
+      document.getElementById('enableVariants').checked = false;
+      document.getElementById('variantsContent').classList.remove('active');
+    }
+
+    // ============ ESTADÍSTICAS ============
+    function actualizarStats() {
+      const total = productos.length;
+      const enStock = productos.filter(p => p.stock > 0).length;
+      const stockBajo = productos.filter(p => p.stock < 20 && p.stock > 0).length;
+      const valorTotal = productos.reduce((sum, p) => sum + (p.precio * p.stock), 0);
+      
+      document.getElementById('stat-total-productos').textContent = total;
+      document.getElementById('stat-en-stock').textContent = enStock;
+      document.getElementById('stat-stock-bajo').textContent = stockBajo;
+      document.getElementById('stat-valor-inventario').textContent = `R$ ${valorTotal.toFixed(2)}`;
+    }
+
+    // ============ GRÁFICOS ============
+    let chartCategorias, chartStock;
+
+    function crearGraficos() {
+      const categorias = {};
+      productos.forEach(p => {
+        categorias[p.categoria] = (categorias[p.categoria] || 0) + 1;
+      });
+      
+      const ctxCat = document.getElementById('chartCategorias');
+      if (chartCategorias) chartCategorias.destroy();
+      chartCategorias = new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(categorias),
+          datasets: [{
+            data: Object.values(categorias),
+            backgroundColor: ['#FF7A00', '#2196F3', '#4CAF50', '#9C27B0']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+      
+      const stockDisponible = productos.filter(p => p.stock > 20).length;
+      const stockBajo = productos.filter(p => p.stock > 0 && p.stock <= 20).length;
+      const sinStock = productos.filter(p => p.stock === 0).length;
+      
+      const ctxStock = document.getElementById('chartStock');
+      if (chartStock) chartStock.destroy();
+      chartStock = new Chart(ctxStock, {
+        type: 'bar',
+        data: {
+          labels: ['Stock Alto', 'Stock Bajo', 'Sin Stock'],
+          datasets: [{
+            label: 'Productos',
+            data: [stockDisponible, stockBajo, sinStock],
+            backgroundColor: ['#4CAF50', '#FF7A00', '#dc3545']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // ============ PEDIDOS - MENÚ DE ESTADO ============
+    function toggleStatusMenu(element) {
+      const dropdown = element.nextElementSibling;
+      
+      document.querySelectorAll('.status-dropdown').forEach(d => {
+        if (d !== dropdown) d.classList.remove('active');
+      });
+      
+      dropdown.classList.toggle('active');
+      
+      document.addEventListener('click', function closeMenu(e) {
+        if (!element.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+          document.removeEventListener('click', closeMenu);
+        }
+      });
+    }
+
+    function cambiarEstadoPedido(option, newStatus, newText) {
+      const statusElement = option.closest('.status-menu').querySelector('.order-status');
+      statusElement.className = `order-status ${newStatus}`;
+      statusElement.textContent = newText;
+      
+      const dropdown = option.closest('.status-dropdown');
+      dropdown.classList.remove('active');
+      
+      // Aquí se enviaría la notificación al cliente
+      console.log(`📧 Notificación enviada al cliente: Pedido cambiado a ${newText}`);
+      alert(`✅ Estado actualizado a: ${newText}\n📧 Se enviará notificación al cliente`);
+    }
+
+    // ============ ADMINISTRADORES ============
+    function verificarPermisosAdmin() {
+      const menuAdmin = document.querySelector('[data-section="administradores"]');
+      const btnAgregarAdmin = document.getElementById('btnAgregarAdmin');
+      
+      if (currentProfile.role === 'owner') {
+        if (menuAdmin) menuAdmin.style.display = 'flex';
+        if (btnAgregarAdmin) btnAgregarAdmin.style.display = 'inline-flex';
+      } else {
+        if (menuAdmin) menuAdmin.style.display = 'none';
+        if (btnAgregarAdmin) btnAgregarAdmin.style.display = 'none';
+        
+        // Si está en la sección de administradores y no es owner, redirigir al dashboard
+        const activeSection = document.querySelector('.section.active');
+        if (activeSection && activeSection.id === 'administradores') {
+          document.querySelector('[data-section="dashboard"]').click();
+        }
+      }
+      renderAdmins(); // Re-renderizar para aplicar visibilidad de acciones
+    }
+
+    function toggleRoleMenu(element) {
+      if (currentProfile.role !== 'owner') {
+        alert('❌ Solo el propietario puede cambiar roles');
+        return;
+      }
+      
+      const dropdown = element.nextElementSibling;
+      
+      document.querySelectorAll('.status-dropdown').forEach(d => {
+        if (d !== dropdown) d.classList.remove('active');
+      });
+      
+      dropdown.classList.toggle('active');
+      
+      document.addEventListener('click', function closeMenu(e) {
+        if (!element.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+          document.removeEventListener('click', closeMenu);
+        }
+      });
+    }
+
+    function cambiarRolAdmin(option, newRole, newText, adminId) {
+      const admin = adminProfiles.find(a => a.id === adminId);
+      if (admin) {
+        admin.role = newRole;
+        localStorage.setItem('flashbuy_admins', JSON.stringify(adminProfiles));
+        renderAdmins();
+        alert(`✅ Rol de ${adminId} actualizado a: ${newText}`);
+      }
+    }
+
+    function mostrarAgregarAdmin() {
+      document.getElementById('modalAgregarAdmin').classList.add('active');
+    }
+
+    function cerrarModalAgregarAdmin() {
+      document.getElementById('modalAgregarAdmin').classList.remove('active');
+      document.getElementById('newAdminId').value = '';
+      document.getElementById('newAdminEmail').value = '';
+      document.getElementById('newAdminRole').value = 'moderator';
+      if(document.getElementById('newAdminPass')) document.getElementById('newAdminPass').value = '';
+    }
+
+    function renderAdmins() {
+      const adminsList = document.getElementById('adminsList');
+      const roleTexts = { 'owner': '👑 Owner', 'moderator': '🛡️ Moderador', 'publisher': '📝 Publicador' };
+      
+      adminsList.innerHTML = adminProfiles.map(admin => `
+        <div class="admin-card">
+          <div class="admin-info">
+            <div class="admin-avatar" style="background:${admin.role === 'owner' ? '#FF7A00' : admin.role === 'moderator' ? '#2196F3' : '#4CAF50'};">${admin.id[0]}</div>
+            <div class="admin-details">
+              <div style="font-weight:600;color:#0B1320;">${admin.id}</div>
+              <div style="font-size:12px;color:#666;">${admin.email}</div>
+              <div style="margin-top:8px;">
+                ${admin.role === 'owner' ? `<span class="admin-role-badge owner">👑 Owner</span>` : `
+                  <div class="status-menu">
+                    <span class="admin-role-badge ${admin.role}" onclick="toggleRoleMenu(this)">${roleTexts[admin.role]}</span>
+                    <div class="status-dropdown">
+                      <div class="status-option" onclick="cambiarRolAdmin(this, 'moderator', '🛡️ Moderador', '${admin.id}')">🛡️ Moderador</div>
+                      <div class="status-option" onclick="cambiarRolAdmin(this, 'publisher', '📝 Publicador', '${admin.id}')">📝 Publicador</div>
+                    </div>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+          <div class="admin-actions">
+            ${admin.role === 'owner' ? '<span style="color:#999;font-size:12px;">No se puede modificar</span>' : `
+              <button class="btn-edit" onclick="editarAdmin('${admin.id}')" style="margin-right:5px;">✏️</button>
+              <button class="btn-delete" onclick="eliminarAdmin('${admin.id}')">🗑️</button>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function agregarNuevoAdmin(e) {
+      e.preventDefault();
+      const id = document.getElementById('newAdminId').value.trim();
+      const email = document.getElementById('newAdminEmail').value.trim();
+      const role = document.getElementById('newAdminRole').value;
+      const pass = document.getElementById('newAdminPass').value;
+      
+      if (adminProfiles.find(a => a.id === id)) {
+        alert('❌ El ID de usuario ya existe');
+        return;
+      }
+
+      adminProfiles.push({ id, name: id, role, email, pass });
+      localStorage.setItem('flashbuy_admins', JSON.stringify(adminProfiles));
+      
+      renderAdmins();
+      cerrarModalAgregarAdmin();
+      alert('✅ Administrador agregado correctamente');
+    }
+
+    function eliminarAdmin(id) {
+      if (currentProfile.role !== 'owner') {
+        alert('❌ Solo el propietario puede eliminar administradores');
+        return;
+      }
+      
+      if (confirm(`¿Estás seguro de eliminar al administrador ${id}?`)) {
+        adminProfiles = adminProfiles.filter(a => a.id !== id);
+        localStorage.setItem('flashbuy_admins', JSON.stringify(adminProfiles));
+        renderAdmins();
+        alert('✅ Administrador eliminado correctamente');
+      }
+    }
+
+    function editarAdmin(id) {
+      const admin = adminProfiles.find(a => a.id === id);
+      if (!admin) return;
+      
+      const newPass = prompt(`Nueva contraseña para ${id} (deja vacío para no cambiar):`);
+      if (newPass !== null && newPass.trim() !== "") {
+        admin.pass = newPass;
+        localStorage.setItem('flashbuy_admins', JSON.stringify(adminProfiles));
+        alert('✅ Contraseña actualizada');
+      }
+    }
+
+    // ============ CAMBIO DE PERFIL ============
+    function mostrarCambioPerfil() {
+      const modal = document.getElementById('modalCambioPerfil');
+      const profileOptions = document.getElementById('profileOptions');
+      
+      profileOptions.innerHTML = adminProfiles.map(profile => `
+        <div class="profile-option ${profile.id === currentProfile.id ? 'active' : ''}" data-profile-id="${profile.id}">
+          <div class="profile-option-avatar">${profile.name[0]}</div>
+          <div class="profile-option-name">${profile.name}</div>
+          <div class="profile-option-role">${profile.email}</div>
+          <div style="margin-top:5px;">
+            <span class="admin-role-badge ${profile.role}" style="cursor:default;">
+              ${profile.role === 'owner' ? '👑 Owner' : profile.role === 'moderator' ? '🛡️ Moderador' : '📝 Publicador'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+      
+      profileOptions.querySelectorAll('.profile-option').forEach(option => {
+        option.addEventListener('click', function() {
+          profileOptions.querySelectorAll('.profile-option').forEach(o => o.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      modal.classList.add('active');
+      document.getElementById('userMenuDropdown').classList.remove('active');
+    }
+
+    function cerrarModalPerfil() {
+      document.getElementById('modalCambioPerfil').classList.remove('active');
+    }
+
+    function confirmarCambioPerfil() {
+      const selected = document.querySelector('.profile-option.active');
+      if (selected) {
+        const profileId = selected.getAttribute('data-profile-id');
+        const profile = adminProfiles.find(p => p.id === profileId);
+        
+        if (profile) {
+          // Solicitar contraseña para el nuevo perfil
+          const password = prompt(`Introduce la contraseña para el perfil ${profile.id}:`);
+          
+          if (password === profile.pass) {
+            currentProfile = profile;
+            // Actualizar también la sesión en localStorage
+            localStorage.setItem('flashbuy_admin_session', JSON.stringify(profile));
+            
+            actualizarPerfilActual();
+            verificarPermisosAdmin();
+            cerrarModalPerfil();
+            alert(`✅ Perfil cambiado correctamente a: ${profile.name}`);
+            
+            // Redirigir al dashboard para limpiar estados anteriores
+            document.querySelector('[data-section="dashboard"]').click();
+          } else {
+            alert('❌ Contraseña incorrecta. No se pudo cambiar el perfil.');
+          }
+        }
+      }
+    }
+
+    function formatBRL(valor) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    }
+
+    function actualizarPerfilActual() {
+      document.getElementById('userAvatar').textContent = currentProfile.name[0];
+      document.getElementById('userName').textContent = currentProfile.name;
+      document.getElementById('userRole').textContent = currentProfile.role === 'owner' ? 'Administrador' : 
+                                                         currentProfile.role === 'moderator' ? 'Moderador' : 'Publicador';
+      const badgeText = currentProfile.role === 'owner' ? 'OWNER' : 
+                       currentProfile.role === 'moderator' ? 'MODERATOR' : 'PUBLISHER';
+      document.getElementById('userBadge').textContent = badgeText;
+    }
+
+    // ============ MENÚ DE USUARIO ============
+    document.getElementById('userInfoBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('userMenuDropdown');
+      dropdown.classList.toggle('active');
+      
+      if (dropdown.classList.contains('active')) {
+        document.addEventListener('click', function closeUserMenu(e) {
+          if (!dropdown.contains(e.target) && !document.getElementById('userInfoBtn').contains(e.target)) {
+            dropdown.classList.remove('active');
+            document.removeEventListener('click', closeUserMenu);
+          }
+        });
+      }
+    });
+
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de cerrar sesión?')) {
+        localStorage.removeItem('flashbuy_admin_session');
+        alert('👋 Sesión cerrada. Redirigiendo...');
+        window.location.href = 'admin-login.html';
+      }
+    }
+
+     // MARKETING - CUPONES
+    // ============================================
+    function mostrarFormCupon() {
+      document.getElementById('form-cupon').style.display = 'block';
+    }
+
+    function ocultarFormCupon() {
+      document.getElementById('form-cupon').style.display = 'none';
+      document.getElementById('cuponForm').reset();
+    }
+
+    function guardarCupon(e) {
+      e.preventDefault();
+      
+      const cupon = {
+        id: cupones.length + 1,
+        codigo: document.getElementById('cupon_codigo').value.toUpperCase(),
+        descuento: parseInt(document.getElementById('cupon_descuento').value),
+        expiracion: document.getElementById('cupon_expiracion').value,
+        usos: parseInt(document.getElementById('cupon_usos').value) || 999,
+        usosActuales: 0
+      };
+      
+      cupones.push(cupon);
+      localStorage.setItem('flashbuy_cupones', JSON.stringify(cupones));
+      
+      renderizarCupones();
+      ocultarFormCupon();
+      alert('✅ Cupón creado correctamente');
+    }
+
+    function renderizarCupones() {
+      const container = document.getElementById('cupones-list');
+      container.innerHTML = '';
+      
+      if (cupones.length === 0) {
+        container.innerHTML = '<p style="text-align:center;padding:40px;color:#999;">No hay cupones creados</p>';
+        return;
+      }
+      
+      cupones.forEach(c => {
+        container.innerHTML += `
+          <div class="coupon-card">
+            <div class="coupon-code">${c.codigo}</div>
+            <p><strong>${c.descuento}%</strong> de descuento</p>
+            <p>📅 Válido hasta: ${new Date(c.expiracion).toLocaleDateString('es')}</p>
+            <p>🎫 Usos: ${c.usosActuales} / ${c.usos}</p>
+            <button class="btn-delete" onclick="eliminarCupon(${c.id})" style="margin-top:10px;">🗑️ Eliminar</button>
+          </div>
+        `;
+      });
+    }
+
+    function eliminarCupon(id) {
+      if (!confirm('¿Eliminar este cupón?')) return;
+      cupones = cupones.filter(c => c.id !== id);
+      localStorage.setItem('flashbuy_cupones', JSON.stringify(cupones));
+      renderizarCupones();
+    }
+
+    // ============================================
+    // ENVÍOS
+    // ============================================
+    function renderizarZonasEnvio() {
+      const container = document.getElementById('zonas-envio-list');
+      container.innerHTML = '';
+      
+      zonasEnvio.forEach(z => {
+        container.innerHTML += `
+          <div class="shipping-zone">
+            <h4>${z.nombre}</h4>
+            <div class="shipping-rate">
+              <span>${z.descripcion}</span>
+              <strong>${formatBRL(z.tarifa)}</strong>
+            </div>
+            <button class="btn-edit" onclick="editarZona(${z.id})">✏️ Editar</button>
+            <button class="btn-delete" onclick="eliminarZona(${z.id})">🗑️ Eliminar</button>
+          </div>
+        `;
+      });
+    }
+
+    function agregarZonaEnvio() {
+      const nombre = prompt('Nombre de la zona:');
+      if (!nombre) return;
+      
+      const tarifa = parseFloat(prompt('Tarifa de envío:'));
+      if (isNaN(tarifa)) return;
+      
+      const descripcion = prompt('Descripción:') || '';
+      
+      zonasEnvio.push({
+        id: zonasEnvio.length + 1,
+        nombre,
+        tarifa,
+        descripcion
+      });
+      
+      localStorage.setItem('flashbuy_zonas_envio', JSON.stringify(zonasEnvio));
+      renderizarZonasEnvio();
+    }
+
+    function editarZona(id) {
+      const zona = zonasEnvio.find(z => z.id === id);
+      if (!zona) return;
+      
+      const tarifa = parseFloat(prompt('Nueva tarifa:', zona.tarifa));
+      if (!isNaN(tarifa)) {
+        zona.tarifa = tarifa;
+        localStorage.setItem('flashbuy_zonas_envio', JSON.stringify(zonasEnvio));
+        renderizarZonasEnvio();
+      }
+    }
+
+    function eliminarZona(id) {
+      if (!confirm('¿Eliminar esta zona?')) return;
+      zonasEnvio = zonasEnvio.filter(z => z.id !== id);
+      localStorage.setItem('flashbuy_zonas_envio', JSON.stringify(zonasEnvio));
+      renderizarZonasEnvio();
+    }
+
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+    function cargarConfiguracion() {
+      const mantenimiento = localStorage.getItem('flashbuy_mantenimiento') === 'true';
+      const notificaciones = localStorage.getItem('flashbuy_notificaciones') !== 'false'; // Default true
+      
+      document.getElementById('toggle-mantenimiento').checked = mantenimiento;
+      document.getElementById('toggle-notificaciones').checked = notificaciones;
+    }
+
+    function toggleMantenimiento() {
+      const activo = document.getElementById('toggle-mantenimiento').checked;
+      localStorage.setItem('flashbuy_mantenimiento', activo);
+      alert(activo ? '⚠️ Modo mantenimiento ACTIVADO' : '✅ Modo mantenimiento DESACTIVADO');
+    }
+
+    function toggleNotificaciones() {
+      const activo = document.getElementById('toggle-notificaciones').checked;
+      localStorage.setItem('flashbuy_notificaciones', activo);
+      alert(activo ? '🔔 Notificaciones por email ACTIVADAS' : '🔕 Notificaciones por email DESACTIVADAS');
+    }
+
+    function limpiarDatos() {
+      if (!confirm('⚠️ ¿Estás seguro? Esto eliminará TODOS los datos del admin.')) return;
+      if (!confirm('🚨 ÚLTIMA CONFIRMACIÓN: Se perderán productos, pedidos, clientes, cupones y configuración.')) return;
+      
+      localStorage.removeItem('flashbuy_productos');
+      localStorage.removeItem('flashbuy_pedidos');
+      localStorage.removeItem('flashbuy_clientes');
+      localStorage.removeItem('flashbuy_cupones');
+      localStorage.removeItem('flashbuy_zonas_envio');
+      
+      alert('🗑️ Datos eliminados. Recargando página...');
+      location.reload();
+    }
+
+    function exportarDatos() {
+      const datos = {
+        productos,
+        pedidos,
+        clientes,
+        cupones,
+        zonasEnvio,
+        fecha: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(datos, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `flashbuy-backup-${Date.now()}.json`;
+      link.click();
+      
+      alert('📥 Datos exportados correctamente');
+    }
+  </script>
+
+</body>
+</html>
