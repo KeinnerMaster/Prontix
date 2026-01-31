@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Migración a Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Migrar datos de localStorage a Supabase</h1>
+  <button onclick="migrar()">Iniciar Migración</button>
+  <pre id="log"></pre>
+
+  <script>
+    const SUPABASE_URL = 'https://zoqgexabyljabqafqaaa.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvcWdleGFieWxqYWJxYWZxYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4ODQxMDAsImV4cCI6MjA4NTQ2MDEwMH0.1TgbafITIwwXaSgK3p19QtvciiaKusd1nNMyZXI5Xmg'
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    async function migrar() {
+      const log = document.getElementById('log')
+      log.textContent = 'Iniciando migración...\n'
+
+      // Migrar cupones
+      const cupones = JSON.parse(localStorage.getItem('flashbuy_cupones') || '[]')
+      if (cupones.length > 0) {
+        log.textContent += `\nMigrando ${cupones.length} cupones...\n`
+        const { error } = await supabase.from('cupones').insert(
+          cupones.map(c => ({
+            codigo: c.codigo,
+            descuento: c.descuento,
+            expiracion: c.expiracion,
+            usos: c.usos,
+            usos_actuales: c.usosActuales || 0
+          }))
+        )
+        log.textContent += error ? `Error: ${error.message}\n` : 'Cupones migrados ✓\n'
+      }
+
+      // Migrar zonas de envío
+      const zonas = JSON.parse(localStorage.getItem('flashbuy_zonas_envio') || '[]')
+      if (zonas.length > 0) {
+        log.textContent += `\nMigrando ${zonas.length} zonas de envío...\n`
+        const { error } = await supabase.from('zonas_envio').insert(zonas)
+        log.textContent += error ? `Error: ${error.message}\n` : 'Zonas migradas ✓\n'
+      }
+
+      log.textContent += '\n✅ Migración completada!'
+    }
+  </script>
+</body>
+</html>
