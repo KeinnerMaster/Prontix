@@ -6,7 +6,7 @@
   // Inicializar Supabase
   const SUPABASE_URL = 'https://zoqgexabyljabqafqaaa.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvcWdleGFieWxqYWJxYWZxYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4ODQxMDAsImV4cCI6MjA4NTQ2MDEwMH0.1TgbafITIwwXaSgK3p19QtvciiaKusd1nNMyZXI5Xmg';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
 <head>
   <meta charset="utf-8" />
@@ -1277,37 +1277,61 @@
       cancelarEdicion();
     }
 
-    function guardarProducto(e) {
-      e.preventDefault();
-      
-      const producto = {
-        nombre: document.getElementById('nombre').value,
-        precio: parseFloat(document.getElementById('precio').value),
-        categoria: document.getElementById('categoria').value,
-        stock: parseInt(document.getElementById('stock').value),
-        descripcion: document.getElementById('descripcion').value,
-        imagen: productImages.length > 0 ? productImages[mainImageIndex] : 'https://via.placeholder.com/300',
-        colores: [...colores],
-        tallas: [...tallas]
-      };
-      
-      if (currentEditingId) {
-        const index = productos.findIndex(p => p.id === currentEditingId);
-        productos[index] = { ...producto, id: currentEditingId };
-        alert('✅ Producto actualizado correctamente');
-      } else {
-        producto.id = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
-        productos.push(producto);
-        alert('✅ Producto agregado correctamente');
-      }
-      
-      cargarProductos();
-      actualizarStats();
-      crearGraficos();
-      cancelarEdicion();
-      
-      document.querySelector('[data-section="productos"]').click();
+    async function guardarProducto(e) {
+  e.preventDefault();
+  
+  const btnGuardar = e.target.querySelector('button[type="submit"]');
+  btnGuardar.textContent = 'Guardando...';
+  btnGuardar.disabled = true;
+
+  const producto = {
+    nombre: document.getElementById('nombre').value,
+    precio: parseFloat(document.getElementById('precio').value),
+    categoria: document.getElementById('categoria').value,
+    stock: parseInt(document.getElementById('stock').value),
+    descripcion: document.getElementById('descripcion').value,
+    imagen: productImages.length > 0 ? productImages[mainImageIndex] : 'https://via.placeholder.com/300',
+    imagenes: productImages,
+    colores: [...colores],
+    tallas: [...tallas]
+  };
+  
+  try {
+    if (currentEditingId ) {
+      // Actualizar en Supabase
+      const { error } = await supabaseClient
+        .from('productos')
+        .update(producto)
+        .eq('id', currentEditingId);
+      if (error) throw error;
+      alert('✅ Actualizado en Supabase');
+    } else {
+      // Insertar en Supabase
+      const { error } = await supabaseClient
+        .from('productos')
+        .insert([producto]);
+      if (error) throw error;
+      alert('✅ Guardado en Supabase');
     }
+    
+    // Recargar datos para ver los cambios
+    const { data } = await supabaseClient.from('productos').select('*');
+    if (data) productos = data;
+
+    cargarProductos();
+    actualizarStats();
+    crearGraficos();
+    cancelarEdicion();
+    document.querySelector('[data-section="productos"]').click();
+
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+  } finally {
+    btnGuardar.textContent = 'Guardar Producto';
+    btnGuardar.disabled = false;
+  }
+}
+
 
     function editarProducto(id) {
       currentEditingId = id;
@@ -1342,15 +1366,19 @@
       document.getElementById('pageSubtitle').textContent = 'Modificar producto existente';
     }
 
-    function eliminarProducto(id) {
-      if (confirm('¿Estás seguro de eliminar este producto?')) {
-        productos = productos.filter(p => p.id !== id);
-        cargarProductos();
-        actualizarStats();
-        crearGraficos();
-        alert('✅ Producto eliminado correctamente');
-      }
-    }
+    async function eliminarProducto(id) {
+  if (confirm('¿Estás seguro de eliminar este producto de la base de datos?')) {
+    const { error } = await supabaseClient.from('productos').delete().eq('id', id);
+    if (error) return alert('Error al eliminar: ' + error.message);
+    
+    productos = productos.filter(p => p.id !== id);
+    cargarProductos();
+    actualizarStats();
+    crearGraficos();
+    alert('✅ Eliminado correctamente');
+  }
+}
+
 
     function cancelarEdicion() {
       currentEditingId = null;
@@ -1892,6 +1920,17 @@
       
       alert('📥 Datos exportados correctamente');
     }
+	
+	// Cargar productos de Supabase al iniciar el admin
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data, error } = await supabase.from('productos').select('*');
+    if (!error && data) {
+        productos = data;
+        cargarProductos();
+        actualizarStats();
+        crearGraficos();
+    }
+});
   </script>
 
 </body>
