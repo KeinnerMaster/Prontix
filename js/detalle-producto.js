@@ -1,11 +1,11 @@
 // detalle-producto.js - Gestión de la página de detalle del producto
+// Actualizado para cargar productos desde Supabase
 
 let currentProduct = null;
 let currentImageIndex = 0;
 let selectedColor = null;
 let selectedSize = null;
 let quantity = 1;
-let productos = []; // Array de productos cargados desde Supabase
 
 // Función para obtener el ID del producto de la URL
 function getProductIdFromURL() {
@@ -28,13 +28,15 @@ async function loadProductDetail() {
     return;
   }
 
-  // Cargar productos desde Supabase si aún no están cargados
-  if (productos.length === 0 && window.cargarProductos) {
-    productos = await window.cargarProductos();
+  // Esperar a que productos.js cargue los productos desde Supabase
+  let intentos = 0;
+  while ((!window.productos || window.productos.length === 0) && intentos < 20) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    intentos++;
   }
 
   // Buscar producto en el array de productos
-  currentProduct = productos.find(p => p.id === productId);
+  currentProduct = window.productos.find(p => p.id === productId);
   
   if (!currentProduct) {
     alert('Producto no encontrado');
@@ -55,7 +57,7 @@ async function loadProductDetail() {
   // Actualizar stock
   updateStockDisplay();
 
-  // Cargar descripción (si existe en el producto, sino usar una genérica)
+  // Cargar descripción
   const description = currentProduct.descripcion || 
     `${currentProduct.nombre} - Producto de alta calidad en la categoría ${currentProduct.categoria}. Perfecta relación calidad-precio.`;
   document.getElementById('product-description').textContent = description;
@@ -72,8 +74,8 @@ async function loadProductDetail() {
 
 // Cargar galería de imágenes
 function loadGallery() {
-  // Usar imagenes array si existe, sino usar imagen principal
-  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+  // Usar imagenes array si existe (formato Supabase), sino imagen principal
+  const images = (currentProduct.imagenes && Array.isArray(currentProduct.imagenes) && currentProduct.imagenes.length > 0) 
     ? currentProduct.imagenes 
     : [currentProduct.imagen];
   
@@ -96,7 +98,7 @@ function loadGallery() {
 
 // Seleccionar imagen
 function selectImage(index) {
-  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+  const images = (currentProduct.imagenes && Array.isArray(currentProduct.imagenes) && currentProduct.imagenes.length > 0) 
     ? currentProduct.imagenes 
     : [currentProduct.imagen];
   currentImageIndex = index;
@@ -111,8 +113,8 @@ function selectImage(index) {
 
 // Cargar opciones del producto (colores, tallas)
 function loadOptions() {
-  // Colores - FORMATO DE SUPABASE: array simple de strings
-  if (currentProduct.colores && currentProduct.colores.length > 0) {
+  // Colores - FORMATO SUPABASE: array de strings simples
+  if (currentProduct.colores && Array.isArray(currentProduct.colores) && currentProduct.colores.length > 0) {
     document.getElementById('color-selector-group').style.display = 'block';
     const colorContainer = document.getElementById('color-options');
     colorContainer.innerHTML = '';
@@ -123,18 +125,17 @@ function loadOptions() {
       colorOption.textContent = color;
       colorOption.onclick = () => selectColor(color);
       
-      // Seleccionar primer color por defecto
       if (index === 0) {
-        colorOption.classList.add('selected');
         selectedColor = color;
+        colorOption.classList.add('selected');
       }
       
       colorContainer.appendChild(colorOption);
     });
   }
 
-  // Tallas - FORMATO DE SUPABASE: array simple de strings
-  if (currentProduct.tallas && currentProduct.tallas.length > 0) {
+  // Tallas - FORMATO SUPABASE: array de strings simples
+  if (currentProduct.tallas && Array.isArray(currentProduct.tallas) && currentProduct.tallas.length > 0) {
     document.getElementById('size-selector-group').style.display = 'block';
     const sizeContainer = document.getElementById('size-options');
     sizeContainer.innerHTML = '';
@@ -221,8 +222,8 @@ function addToCart() {
     return;
   }
 
-  // Obtener carrito actual (usar el mismo key que productos.js)
-  let carrito = JSON.parse(localStorage.getItem('flashbuy_carrito') || '[]');
+  // Obtener carrito actual
+  let carrito = JSON.parse(localStorage.getItem('flashbuy_cart') || '[]');
 
   // Verificar stock disponible
   const existingItem = carrito.find(item => 
@@ -247,8 +248,9 @@ function addToCart() {
       nombre: currentProduct.nombre,
       precio: currentProduct.precio,
       imagen: currentProduct.imagen,
-      cantidad: quantity,
-      stock: currentProduct.stock
+      categoria: currentProduct.categoria,
+      stock: currentProduct.stock,
+      cantidad: quantity
     };
     
     if (selectedColor) cartItem.color = selectedColor;
@@ -258,12 +260,7 @@ function addToCart() {
   }
 
   // Guardar carrito
-  localStorage.setItem('flashbuy_carrito', JSON.stringify(carrito));
-
-  // Actualizar contador si existe la función
-  if (window.actualizarContadorCarrito) {
-    window.actualizarContadorCarrito();
-  }
+  localStorage.setItem('flashbuy_cart', JSON.stringify(carrito));
 
   // Mostrar confirmación
   const options = [];
@@ -292,7 +289,7 @@ function buyNow() {
 function openZoom() {
   const modal = document.getElementById('zoom-modal');
   const zoomImage = document.getElementById('zoom-image');
-  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+  const images = (currentProduct.imagenes && Array.isArray(currentProduct.imagenes) && currentProduct.imagenes.length > 0) 
     ? currentProduct.imagenes 
     : [currentProduct.imagen];
   
@@ -308,7 +305,7 @@ function closeZoom() {
 }
 
 function prevImage() {
-  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+  const images = (currentProduct.imagenes && Array.isArray(currentProduct.imagenes) && currentProduct.imagenes.length > 0) 
     ? currentProduct.imagenes 
     : [currentProduct.imagen];
   currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
@@ -317,7 +314,7 @@ function prevImage() {
 }
 
 function nextImage() {
-  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+  const images = (currentProduct.imagenes && Array.isArray(currentProduct.imagenes) && currentProduct.imagenes.length > 0) 
     ? currentProduct.imagenes 
     : [currentProduct.imagen];
   currentImageIndex = (currentImageIndex + 1) % images.length;
@@ -330,7 +327,7 @@ function loadRelatedProducts() {
   const relatedContainer = document.getElementById('related-products-list');
   
   // Filtrar productos de la misma categoría, excluyendo el actual
-  const relatedProducts = productos
+  const relatedProducts = window.productos
     .filter(p => p.categoria === currentProduct.categoria && p.id !== currentProduct.id)
     .slice(0, 4);
 
