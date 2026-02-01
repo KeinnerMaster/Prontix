@@ -318,6 +318,9 @@
     // Credenciales correctas
     const ADMIN_USER = 'DATA001';
     const ADMIN_PASS = 'Nose**77';
+	
+	const ADMIN_USER = 'gereventop';
+    const ADMIN_PASS = 'Nose**77';
 
     // Verificar si ya está logueado
     window.addEventListener('DOMContentLoaded', function() {
@@ -355,6 +358,10 @@
         // Obtener lista de administradores desde localStorage
         const adminProfiles = JSON.parse(localStorage.getItem('flashbuy_admins')) || [
           { id: 'DATA001', name: 'DATA001', role: 'owner', email: 'admin@flashbuy.com', pass: 'Nose**77' }
+        ];
+		
+		const adminProfiles = JSON.parse(localStorage.getItem('flashbuy_admins')) || [
+          { id: 'gereventop', name: 'gereventop', role: 'moderador', email: 'gereventop@gmail.com', pass: 'Nose**77' }
         ];
 
         // Buscar el usuario
