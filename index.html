@@ -165,13 +165,14 @@
     </footer>
   </div>
 
+<!-- SCRIPTS EN ESTE ORDEN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/productos.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/tracking.js"></script>
   
   <!-- Script de modo mantenimiento -->
   <script>
-    // Verificar si el modo mantenimiento está activo
     document.addEventListener('DOMContentLoaded', function() {
       const mantenimientoActivo = localStorage.getItem('flashbuy_mantenimiento') === 'true';
       
@@ -181,5 +182,7 @@
       }
     });
   </script>
+</body>
+</html>
 </body>
 </html>

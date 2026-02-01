@@ -5,6 +5,7 @@ let currentImageIndex = 0;
 let selectedColor = null;
 let selectedSize = null;
 let quantity = 1;
+let productos = []; // Array de productos cargados desde Supabase
 
 // Función para obtener el ID del producto de la URL
 function getProductIdFromURL() {
@@ -17,14 +18,19 @@ function formatBRL(n) {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// Cargar información del producto
-function loadProductDetail() {
+// Cargar información del producto DESDE SUPABASE
+async function loadProductDetail() {
   const productId = getProductIdFromURL();
   
   if (!productId) {
     alert('Producto no encontrado');
     window.location.href = 'productos.html';
     return;
+  }
+
+  // Cargar productos desde Supabase si aún no están cargados
+  if (productos.length === 0 && window.cargarProductos) {
+    productos = await window.cargarProductos();
   }
 
   // Buscar producto en el array de productos
@@ -66,8 +72,10 @@ function loadProductDetail() {
 
 // Cargar galería de imágenes
 function loadGallery() {
-  // Por ahora usaremos la imagen principal, pero aquí puedes agregar múltiples imágenes
-  const images = currentProduct.imagenes || [currentProduct.imagen];
+  // Usar imagenes array si existe, sino usar imagen principal
+  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+    ? currentProduct.imagenes 
+    : [currentProduct.imagen];
   
   // Imagen principal
   document.getElementById('main-image').src = images[0];
@@ -88,7 +96,9 @@ function loadGallery() {
 
 // Seleccionar imagen
 function selectImage(index) {
-  const images = currentProduct.imagenes || [currentProduct.imagen];
+  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+    ? currentProduct.imagenes 
+    : [currentProduct.imagen];
   currentImageIndex = index;
   
   document.getElementById('main-image').src = images[index];
@@ -101,27 +111,29 @@ function selectImage(index) {
 
 // Cargar opciones del producto (colores, tallas)
 function loadOptions() {
-  // Colores
+  // Colores - FORMATO DE SUPABASE: array simple de strings
   if (currentProduct.colores && currentProduct.colores.length > 0) {
     document.getElementById('color-selector-group').style.display = 'block';
     const colorContainer = document.getElementById('color-options');
     colorContainer.innerHTML = '';
 
-    currentProduct.colores.forEach(color => {
+    currentProduct.colores.forEach((color, index) => {
       const colorOption = document.createElement('div');
       colorOption.className = 'color-option';
-      colorOption.style.backgroundColor = color.hex;
-      colorOption.title = color.nombre;
-      colorOption.onclick = () => selectColor(color.nombre);
+      colorOption.textContent = color;
+      colorOption.onclick = () => selectColor(color);
+      
+      // Seleccionar primer color por defecto
+      if (index === 0) {
+        colorOption.classList.add('selected');
+        selectedColor = color;
+      }
+      
       colorContainer.appendChild(colorOption);
     });
-
-    // Seleccionar primer color por defecto
-    selectedColor = currentProduct.colores[0].nombre;
-    colorContainer.firstChild.classList.add('selected');
   }
 
-  // Tallas
+  // Tallas - FORMATO DE SUPABASE: array simple de strings
   if (currentProduct.tallas && currentProduct.tallas.length > 0) {
     document.getElementById('size-selector-group').style.display = 'block';
     const sizeContainer = document.getElementById('size-options');
@@ -209,8 +221,8 @@ function addToCart() {
     return;
   }
 
-  // Obtener carrito actual
-  let carrito = JSON.parse(localStorage.getItem('flashbuy_cart') || '[]');
+  // Obtener carrito actual (usar el mismo key que productos.js)
+  let carrito = JSON.parse(localStorage.getItem('flashbuy_carrito') || '[]');
 
   // Verificar stock disponible
   const existingItem = carrito.find(item => 
@@ -231,8 +243,12 @@ function addToCart() {
     existingItem.cantidad += quantity;
   } else {
     const cartItem = {
-      ...currentProduct,
-      cantidad: quantity
+      id: currentProduct.id,
+      nombre: currentProduct.nombre,
+      precio: currentProduct.precio,
+      imagen: currentProduct.imagen,
+      cantidad: quantity,
+      stock: currentProduct.stock
     };
     
     if (selectedColor) cartItem.color = selectedColor;
@@ -242,7 +258,12 @@ function addToCart() {
   }
 
   // Guardar carrito
-  localStorage.setItem('flashbuy_cart', JSON.stringify(carrito));
+  localStorage.setItem('flashbuy_carrito', JSON.stringify(carrito));
+
+  // Actualizar contador si existe la función
+  if (window.actualizarContadorCarrito) {
+    window.actualizarContadorCarrito();
+  }
 
   // Mostrar confirmación
   const options = [];
@@ -271,7 +292,9 @@ function buyNow() {
 function openZoom() {
   const modal = document.getElementById('zoom-modal');
   const zoomImage = document.getElementById('zoom-image');
-  const images = currentProduct.imagenes || [currentProduct.imagen];
+  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+    ? currentProduct.imagenes 
+    : [currentProduct.imagen];
   
   zoomImage.src = images[currentImageIndex];
   modal.classList.add('active');
@@ -285,14 +308,18 @@ function closeZoom() {
 }
 
 function prevImage() {
-  const images = currentProduct.imagenes || [currentProduct.imagen];
+  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+    ? currentProduct.imagenes 
+    : [currentProduct.imagen];
   currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
   selectImage(currentImageIndex);
   document.getElementById('zoom-image').src = images[currentImageIndex];
 }
 
 function nextImage() {
-  const images = currentProduct.imagenes || [currentProduct.imagen];
+  const images = (currentProduct.imagenes && currentProduct.imagenes.length > 0) 
+    ? currentProduct.imagenes 
+    : [currentProduct.imagen];
   currentImageIndex = (currentImageIndex + 1) % images.length;
   selectImage(currentImageIndex);
   document.getElementById('zoom-image').src = images[currentImageIndex];
